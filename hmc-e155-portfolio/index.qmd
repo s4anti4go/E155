@@ -1,0 +1,17 @@
+---
+title: "E155 Portfolio"
+image: images/head.jpeg
+about:
+  template: jolla
+  links:
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/santiago-burgos-fallon-555a81309/
+    - icon: github
+      text: GitHub
+      href: https://github.com/s4anti4go
+---
+
+
+Hi! I’m Santiago Burgos-Fallon, a senior Engineering student at Harvey Mudd College. I love everything computers, from digital design and embedded systems to data analysis. This summer I worked at TSMC in Lithography Process Engineering, where I analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Ive built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. Ive also done work relating healthcare tooling and AI for making healthcare more accesible. Currently, I am co-authoring a paper using Python-heavy data processing and visualization techniques to correlate air quality and Segregation in West Oakland. I like projects where I can go end-to-end: define the problem, model the data, write the code, and deliver something impactful.
+

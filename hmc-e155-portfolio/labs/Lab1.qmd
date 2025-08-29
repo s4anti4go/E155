@@ -1,0 +1,9 @@
+---
+title: "Lab 1"
+description: "Place Holder For Lab 1"
+author: "Santiago Burgos-Fallon"
+date: "8/29/24"
+categories:
+  - Labs
+draft: false
+---

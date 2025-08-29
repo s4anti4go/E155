@@ -1,0 +1,10 @@
+---
+title: "Hello Quarto"
+description: "Welcome to my Quarto portfolio"
+author: "Santiago Burgos-Fallon"
+date: "8/29/24"
+categories:
+  - reflection
+  - labreport
+draft: false
+---
