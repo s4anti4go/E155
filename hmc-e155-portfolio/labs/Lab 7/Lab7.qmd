@@ -1,0 +1,9 @@
+---
+title: "Lab 7: The Advanced Encryption Standard"
+description: "A hardware accelerator to perform 128-bit AES encryption"
+author: "Santiago Burgos-Fallon"
+date: "10/09/25"
+categories:
+  - Labs
+draft: false
+---

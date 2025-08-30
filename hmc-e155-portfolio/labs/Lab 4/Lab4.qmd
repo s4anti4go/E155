@@ -1,0 +1,9 @@
+---
+title: "Lab 4: Digital Audio"
+description: "Use MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations"
+author: "Santiago Burgos-Fallon"
+date: "9/18/25"
+categories:
+  - Labs
+draft: false
+---

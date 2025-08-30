@@ -1,0 +1,9 @@
+---
+title: "Lab 5: Interrupts"
+description: "Use MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts."
+author: "Santiago Burgos-Fallon"
+date: "9/25/25"
+categories:
+  - Labs
+draft: false
+---

@@ -1,0 +1,9 @@
+---
+title: "Lab 2: Multiplexed 7-Segment Display"
+description: "A time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins"
+author: "Santiago Burgos-Fallon"
+date: "9/04/25"
+categories:
+  - Labs
+draft: false
+---

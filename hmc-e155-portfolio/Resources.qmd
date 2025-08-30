@@ -1,0 +1,8 @@
+---
+title: "Resources"
+listing:
+  contents: resources
+  sort: "alphebitically"
+  type: default
+  categories: false
+---

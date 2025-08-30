@@ -1,0 +1,9 @@
+---
+title: "Lab 6: The Internet of Things and Serial Peripheral Interface"
+description: "An internet-accessible device to control an onboard LED and measure ambient temperature"
+author: "Santiago Burgos-Fallon"
+date: "10/02/25"
+categories:
+  - Labs
+draft: false
+---

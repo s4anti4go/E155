@@ -1,0 +1,10 @@
+---
+title: "Lab 1: FPGA and MCU Setup and Testing"
+description: "Explore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course."
+author: "Santiago Burgos-Fallon"
+date: "8/29/25"
+categories:
+  - Labs
+draft: false
+---
+
