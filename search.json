@@ -1,0 +1,44 @@
+[
+  {
+    "objectID": "blog.html",
+    "href": "blog.html",
+    "title": "E155 Blog",
+    "section": "",
+    "text": "Hello Quarto\n\n\nWelcome to my Quarto portfolio\n\n\n\n\n\nAug 29, 2024\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "labs.html",
+    "href": "labs.html",
+    "title": "Labs",
+    "section": "",
+    "text": "Lab 7: The Advanced Encryption Standard\n\n\nA hardware accelerator to perform 128-bit AES encryption\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: The Internet of Things and Serial Peripheral Interface\n\n\nAn internet-accessible device to control an onboard LED and measure ambient temperature\n\n\n\n\n\nOct 2, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts\n\n\nUse MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts.\n\n\n\n\n\nSep 25, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio\n\n\nUse MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations\n\n\n\n\n\nSep 18, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\nDesigned a circuit interface to read a matrix keypad on an FPGA\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 4, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "resources/resource1.html",
+    "href": "resources/resource1.html",
+    "title": "E155 Course Page",
+    "section": "",
+    "text": "https://hmc-e155.github.io"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "E155 Portfolio",
+    "section": "",
+    "text": "Hi! I’m Santiago Burgos-Fallon, a senior Engineering student at Harvey Mudd College. I love everything computers, from digital design and embedded systems to data analysis. This summer I worked at TSMC in Lithography Process Engineering, where I analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Ive built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. Ive also done work relating healthcare tooling and AI for making healthcare more accesible. Currently, I am co-authoring a paper using Python-heavy data processing and visualization techniques to correlate air quality and Segregation in West Oakland. I like projects where I can go end-to-end: define the problem, model the data, write the code, and deliver something impactful."
+  },
+  {
+    "objectID": "Resources.html",
+    "href": "Resources.html",
+    "title": "Resources",
+    "section": "",
+    "text": "E155 Course Page\n\n\nWhat the title says\n\n\n\n\n\n\n\n\nNo matching items"
+  }
+]
