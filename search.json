@@ -4,7 +4,7 @@
     "href": "blog.html",
     "title": "E155 Blog",
     "section": "",
-    "text": "Hello Quarto\n\n\nWelcome to my Quarto portfolio\n\n\n\n\n\nAug 29, 2024\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+    "text": "First Post!\n\n\nWhat Im looking forward to in Micro P’s\n\n\n\n\n\nAug 29, 2024\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -19,6 +19,13 @@
     "title": "Labs",
     "section": "",
     "text": "Lab 7: The Advanced Encryption Standard\n\n\nA hardware accelerator to perform 128-bit AES encryption\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: The Internet of Things and Serial Peripheral Interface\n\n\nAn internet-accessible device to control an onboard LED and measure ambient temperature\n\n\n\n\n\nOct 2, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts\n\n\nUse MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts.\n\n\n\n\n\nSep 25, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio\n\n\nUse MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations\n\n\n\n\n\nSep 18, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\nDesigned a circuit interface to read a matrix keypad on an FPGA\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 4, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "posts/FirstPost.html",
+    "href": "posts/FirstPost.html",
+    "title": "First Post!",
+    "section": "",
+    "text": "I’m excited for MicroPs because I get to see my code affect hardware in the real world. Writing something, probing a pin, and watching the scope confirm it did what I intended is the kind of feedback loop that makes the work satisfying and helps me absorb information.\nThis semester I want to build fluency in the basics that make systems reliable: read reference manuals without getting stuck, set up clocks cleanly, bring up GPIO/timers/serial, and write small drivers with clear init and ISR paths. I want to use interrupts and DMA with intent, understand when HAL or an RTOS helps (and when it doesn’t), and get better at debugging with a logic analyzer and scope instead of guessing.\nBy the end, I’m excited to be able to partake in a focused project I care about that uses the information I learned from the class. Looking forward to it :D"
   },
   {
     "objectID": "resources/resource1.html",
