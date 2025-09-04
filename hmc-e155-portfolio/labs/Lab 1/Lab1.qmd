@@ -12,7 +12,8 @@ resources:
 
 ## Introduction
 
-In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input to a common-anode 7-segment display. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K; MCU echo tests in SEGGER Embedded Studio confirmed MCU↔FPGA connectivity.
+In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input from the on-board DIP switches (SW6) to a common-anode 7-segment display. The switches provide s[3:0] directly into the FPGA; the decoder drives seg[6:0] (active-low) through series resistors to the display so that the selected hex digit lights correctly. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K;
+
 
 ## Design & Testing Methodology
 
@@ -68,14 +69,19 @@ Self-checking testbenches read `.tv` vectors:
 | 1  | 1  | ON  |
 
 `led[2]` blinks at ~2.4 Hz from the divider:
-\[
-\text{TOGGLE\_COUNT}=\frac{48\,\text{MHz}}{2\cdot 2.4\,\text{Hz}}-1=10{,}000{,}000-1
-\]
+$$
+\mathrm{TOGGLE\_COUNT}
+= \frac{48\,\mathrm{MHz}}{2 \cdot 2.4\,\mathrm{Hz}} - 1
+= 10{,}000{,}000 - 1
+$$
 
 ### Seven-segment notes
 
 - Common-anode display → **active-low** segment lines (`0` turns a segment **on**).
 - Naming: `seg[0]=A … seg[6]=G`.
+- To turn on correct segments:
+![layout of seven segment display nodes).](images/seven_seg_map.png){#fig-block align="center" fig-alt="seven segment display." width="35%"}
+
 
 ## Results & Discussion
 
