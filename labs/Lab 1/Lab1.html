@@ -122,8 +122,43 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#design-testing-methodology" id="toc-design-testing-methodology" class="nav-link" data-scroll-target="#design-testing-methodology">Design &amp; Testing Methodology</a>
+  <ul class="collapse">
+  <li><a href="#architecture" id="toc-architecture" class="nav-link" data-scroll-target="#architecture">Architecture</a></li>
+  <li><a href="#unit-tests-simulation" id="toc-unit-tests-simulation" class="nav-link" data-scroll-target="#unit-tests-simulation">Unit tests (simulation)</a></li>
+  <li><a href="#hardware-bring-up" id="toc-hardware-bring-up" class="nav-link" data-scroll-target="#hardware-bring-up">Hardware bring-up</a></li>
+  </ul></li>
+  <li><a href="#technical-documentation" id="toc-technical-documentation" class="nav-link" data-scroll-target="#technical-documentation">Technical Documentation</a>
+  <ul class="collapse">
+  <li><a href="#led-behavior-specification" id="toc-led-behavior-specification" class="nav-link" data-scroll-target="#led-behavior-specification">LED behavior specification</a></li>
+  <li><a href="#seven-segment-notes" id="toc-seven-segment-notes" class="nav-link" data-scroll-target="#seven-segment-notes">Seven-segment notes</a></li>
+  </ul></li>
+  <li><a href="#results-discussion" id="toc-results-discussion" class="nav-link" data-scroll-target="#results-discussion">Results &amp; Discussion</a>
+  <ul class="collapse">
+  <li><a href="#seven-segment-unit-tests" id="toc-seven-segment-unit-tests" class="nav-link" data-scroll-target="#seven-segment-unit-tests">Seven-segment unit tests</a></li>
+  <li><a href="#led-logic-unit-tests" id="toc-led-logic-unit-tests" class="nav-link" data-scroll-target="#led-logic-unit-tests">LED logic unit tests</a></li>
+  <li><a href="#top-level-simulation" id="toc-top-level-simulation" class="nav-link" data-scroll-target="#top-level-simulation">Top-level simulation</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#ai-implementation" id="toc-ai-implementation" class="nav-link" data-scroll-target="#ai-implementation">AI Implementation</a>
+  <ul class="collapse">
+  <li><a href="#prompt" id="toc-prompt" class="nav-link" data-scroll-target="#prompt">Prompt</a></li>
+  <li><a href="#what-the-llm-produced-gemini" id="toc-what-the-llm-produced-gemini" class="nav-link" data-scroll-target="#what-the-llm-produced-gemini">What the LLM produced (Gemini)</a></li>
+  <li><a href="#synthesis-outcome" id="toc-synthesis-outcome" class="nav-link" data-scroll-target="#synthesis-outcome">Synthesis outcome</a></li>
+  <li><a href="#quality-rating-and-why" id="toc-quality-rating-and-why" class="nav-link" data-scroll-target="#quality-rating-and-why">Quality rating (and why)</a></li>
+  <li><a href="#what-i-learned-new-constructs" id="toc-what-i-learned-new-constructs" class="nav-link" data-scroll-target="#what-i-learned-new-constructs">What I learned / new constructs</a></li>
+  <li><a href="#errors-warnings-encountered" id="toc-errors-warnings-encountered" class="nav-link" data-scroll-target="#errors-warnings-encountered">Errors &amp; warnings encountered</a></li>
+  <li><a href="#tips-for-using-llms-for-hdl-next-time-playbook" id="toc-tips-for-using-llms-for-hdl-next-time-playbook" class="nav-link" data-scroll-target="#tips-for-using-llms-for-hdl-next-time-playbook">Tips for using LLMs for HDL (next-time playbook)</a></li>
+  <li><a href="#appendix-figure-index" id="toc-appendix-figure-index" class="nav-link" data-scroll-target="#appendix-figure-index">Appendix: Figure index</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -167,8 +202,305 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input to a common-anode 7-segment display. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K; MCU echo tests in SEGGER Embedded Studio confirmed MCU↔︎FPGA connectivity.</p>
+</section>
+<section id="design-testing-methodology" class="level2">
+<h2 class="anchored" data-anchor-id="design-testing-methodology">Design &amp; Testing Methodology</h2>
+<section id="architecture" class="level3">
+<h3 class="anchored" data-anchor-id="architecture">Architecture</h3>
+<ul>
+<li>Internal 48 MHz HSOSC feeds a power-on reset counter and a parameterized divider that creates a ~2.4 Hz tick for <code>led[2]</code>.</li>
+<li><code>led_logic</code> implements the required LED truth tables and optional active-low polarity.</li>
+<li><code>SevenSeg</code> is a combinational hex→segments decoder with <strong>active-low</strong> outputs (for a common-anode display).</li>
+</ul>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="HSOSC to POR and BlinkDiv to led_logic; SevenSeg in parallel from s[3:0]." data-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/sv.jpg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="HSOSC to POR and BlinkDiv to led_logic; SevenSeg in parallel from s[3:0].">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Block diagram of the top-level (<code>sbf_lab1</code>).
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="unit-tests-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="unit-tests-simulation">Unit tests (simulation)</h3>
+<p>Self-checking testbenches read <code>.tv</code> vectors: - <code>tb_SevenSeg_tv</code> verifies the 0x0–0xF map. - <code>tb_led_logic_tv</code> checks both active-high and active-low instances. - <code>tb_lab1_sbf_tv</code> checks <code>seg</code> and <code>led[1:0]</code> at top level (blink bit ignored).</p>
+<blockquote class="blockquote">
+<p><strong>On the single “error”:</strong> one vector intentionally contains unknowns (<code>xxxxxxx</code>) to represent a “don’t-care” state during initialization. The testbench expects <code>xxxxxxx</code>, while real hardware (with pull-ups and reset) resolves to <code>1111111</code> (all segments off). Functionally correct; the failure is in the expected vector, not the DUT.</p>
+</blockquote>
+</section>
+<section id="hardware-bring-up" class="level3">
+<h3 class="anchored" data-anchor-id="hardware-bring-up">Hardware bring-up</h3>
+<ul>
+<li>Verified +5 V and +3.3 V LDO outputs on VIN power before inserting modules.</li>
+<li>Wired one side of the dual 7-segment (common-anode) with series resistors on each segment; anode to 3.3 V.</li>
+<li>Used ~1 kΩ series resistors → ≈3.3 mA/segment (ignoring LED (V_f)), comfortably within limits: [ I = 3.3&nbsp; ]</li>
+</ul>
+<div id="fig-schematic" class="quarto-float quarto-figure quarto-figure-center anchored" alt="7-segment wiring and LED current calc.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/elec.jpg" class="img-fluid figure-img" style="width:90.0%" alt="7-segment wiring and LED current calc.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Hand-drawn schematic and current note (common-anode with ~1 kΩ series resistors).
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="technical-documentation" class="level2">
+<h2 class="anchored" data-anchor-id="technical-documentation">Technical Documentation</h2>
+<ul>
+<li><strong>Code directory:</strong> <code>code/</code>
+<ul>
+<li>FPGA design: <code>SevenSeg</code>, <code>BlinkDiv</code>, <code>led_logic</code>, <code>sbf_lab1</code> (top).</li>
+<li>Testbenches: <code>tb_SevenSeg_tv</code>, <code>tb_led_logic_tv</code>, <code>tb_lab1_sbf_tv</code>.</li>
+</ul></li>
+<li><strong>Tools:</strong> Radiant (synthesis, constraints, Netlist Analyzer), QuestaSim Lattice Edition (simulation), SEGGER Embedded Studio (MCU).</li>
+</ul>
+<section id="led-behavior-specification" class="level3">
+<h3 class="anchored" data-anchor-id="led-behavior-specification">LED behavior specification</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">S1</th>
+<th style="text-align: center;">S0</th>
+<th style="text-align: center;">led[0]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">OFF</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">ON</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">ON</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">OFF</td>
+</tr>
+</tbody>
+</table>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">S3</th>
+<th style="text-align: center;">S2</th>
+<th style="text-align: center;">led[1]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">OFF</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">OFF</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">OFF</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">ON</td>
+</tr>
+</tbody>
+</table>
+<p><code>led[2]</code> blinks at ~2.4 Hz from the divider: [ =-1=10{,}000{,}000-1 ]</p>
+</section>
+<section id="seven-segment-notes" class="level3">
+<h3 class="anchored" data-anchor-id="seven-segment-notes">Seven-segment notes</h3>
+<ul>
+<li>Common-anode display → <strong>active-low</strong> segment lines (<code>0</code> turns a segment <strong>on</strong>).</li>
+<li>Naming: <code>seg[0]=A … seg[6]=G</code>.</li>
+</ul>
+</section>
+</section>
+<section id="results-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="results-discussion">Results &amp; Discussion</h2>
+<section id="seven-segment-unit-tests" class="level3">
+<h3 class="anchored" data-anchor-id="seven-segment-unit-tests">Seven-segment unit tests</h3>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-7seg-waves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="SevenSeg waveform sweep for all hex digits.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-7seg-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/seven seg waves.png" class="img-fluid figure-img" alt="SevenSeg waveform sweep for all hex digits.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-7seg-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: SevenSeg waves across 0x0–0xF.
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-7seg-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="16 tests, 1 error due to X-expectation vector.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-7seg-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/seven seg tests.png" class="img-fluid figure-img" alt="16 tests, 1 error due to X-expectation vector.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-7seg-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: SevenSeg transcript (1 expected X-case mismatch at vec 0).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="led-logic-unit-tests" class="level3">
+<h3 class="anchored" data-anchor-id="led-logic-unit-tests">LED logic unit tests</h3>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-led-waves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="led_logic waveform verification for both polarities.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-led-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/led tests waves.png" class="img-fluid figure-img" alt="led_logic waveform verification for both polarities.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-led-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: LED logic waves (active-high and active-low instances).
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-led-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="32 led_logic tests, 0 errors.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-led-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/led text tests.png" class="img-fluid figure-img" alt="32 led_logic tests, 0 errors.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-led-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: LED logic transcript (all pass).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="top-level-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="top-level-simulation">Top-level simulation</h3>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-top-waves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Top-level seg and led activity; blink bit ignored in checks.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-top-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/lab test waves.png" class="img-fluid figure-img" alt="Top-level seg and led activity; blink bit ignored in checks.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-top-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Top-level (<code>sbf_lab1</code>) QuestaSim waves sweeping s=0..F.
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-top-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="16 tests, 1 error; explained as expected-X vs resolved-1 mismatch.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-top-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/lab vectors.png" class="img-fluid figure-img" alt="16 tests, 1 error; explained as expected-X vs resolved-1 mismatch.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-top-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Top-level transcript (1 error corresponds to X-expectation init vector).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Interpretation.</strong><br>
+- <code>led_logic</code> passes all vectors for both polarities.<br>
+- <code>SevenSeg</code> and top-level each show one flagged vector where the testbench expects unknowns; hardware resolves to <strong>all off</strong> (<code>1111111</code>). Functionality is correct; the discrepancy is only in the expected file’s init case.<br>
+- Divider math and POR behavior match intent; <code>led[2]</code> toggles at the expected rate (simulation time scaled).</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>I assembled and powered the E155 dev board, verified MCU↔︎FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware—acceptable and documented.</p>
+<p><strong>Time spent:</strong> 20 hours. <strong>All Code</strong> https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201 —</p>
+</section>
+<section id="ai-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="ai-implementation">AI Implementation</h2>
+<section id="prompt" class="level3">
+<h3 class="anchored" data-anchor-id="prompt">Prompt</h3>
+<blockquote class="blockquote">
+<p>Write SystemVerilog HDL to leverage the internal high speed oscillator in the Lattice UP5K FPGA and blink an LED at 2 Hz. Take full advantage of SystemVerilog syntax, for example, using logic instead of wire and reg.</p>
+</blockquote>
+</section>
+<section id="what-the-llm-produced-gemini" class="level3">
+<h3 class="anchored" data-anchor-id="what-the-llm-produced-gemini">What the LLM produced (Gemini)</h3>
+<p>Good ideas it used: - Parameterized divider (<code>CLK_FREQ</code>, <code>BLINK_FREQ</code>) with <code>$clog2</code> sizing - Modern SV constructs (<code>logic</code>, <code>always_ff</code>) - Clear split: top module that wraps an oscillator primitive + a blinker child</p>
+<p>Top-level snippet returned (abridged): module led_blink_top (output logic o_led); logic clk_48mhz; SB_HFOSC u_hfosc ( .CLKHFPU(1’b1), .CLKHFEN(1’b1), .CLKHF(clk_48mhz) ); defparam u_hfosc.CLKHF_DIV = “0b00”; // 48 MHz led_blinker u_led_blinker (.clk(clk_48mhz), .led(o_led)); endmodule</p>
+</section>
+<section id="synthesis-outcome" class="level3">
+<h3 class="anchored" data-anchor-id="synthesis-outcome">Synthesis outcome</h3>
+<p>Radiant failed at the oscillator instantiation with: VERI-1063: instantiating unknown module SB_HFOSC Root cause: Radiant’s iCE40 UltraPlus technology library expects the <code>HSOSC</code> primitive, not <code>SB_HFOSC</code> (the <code>SB_*</code> form is common in iCEcube2 examples).</p>
+<p>Fix applied (works in Radiant): // iCE40UP internal HF oscillator HSOSC #(.CLKHF_DIV(2’b00)) // 00 = 48 MHz hf_osc (.CLKHFPU(1’b1), .CLKHFEN(1’b1), .CLKHF(clk));</p>
+<p>I also replaced the LLM’s <code>initial</code>-based register inits with a tiny synchronous power-on reset (POR) counter so hardware powers up in a known state.</p>
+</section>
+<section id="quality-rating-and-why" class="level3">
+<h3 class="anchored" data-anchor-id="quality-rating-and-why">Quality rating (and why)</h3>
+<ul>
+<li>Rating: B<br>
+</li>
+<li>Strengths: idiomatic SV, readable, correct divide-by-N math, parameterized for reuse<br>
+</li>
+<li>Weak spots: vendor primitive mismatch (<code>SB_HFOSC</code> vs <code>HSOSC</code>), <code>defparam</code> string style (<code>"0b00"</code>), reliance on <code>initial</code> for synthesis reset</li>
+</ul>
+</section>
+<section id="what-i-learned-new-constructs" class="level3">
+<h3 class="anchored" data-anchor-id="what-i-learned-new-constructs">What I learned / new constructs</h3>
+<ul>
+<li><code>$clog2</code> is handy for auto-sizing counters and synthesizes cleanly on UP5K.</li>
+<li>Parameterizing the blink frequency made switching between 2 Hz (prompt) and 2.4 Hz (lab) a one-line change.</li>
+</ul>
+</section>
+<section id="errors-warnings-encountered" class="level3">
+<h3 class="anchored" data-anchor-id="errors-warnings-encountered">Errors &amp; warnings encountered</h3>
+<ul>
+<li>Radiant: <code>VERI-1063 instantiating unknown module SB_HFOSC</code> → resolved by switching to <code>HSOSC #(.CLKHF_DIV(2'b00))</code> and wiring <code>CLKHFPU/CLKHFEN/CLKHF</code>.</li>
+</ul>
+</section>
+<section id="tips-for-using-llms-for-hdl-next-time-playbook" class="level3">
+<h3 class="anchored" data-anchor-id="tips-for-using-llms-for-hdl-next-time-playbook">Tips for using LLMs for HDL (next-time playbook)</h3>
+<ol type="1">
+<li>Specify tool, family, and exact primitive in the prompt: target Lattice Radiant for iCE40 UltraPlus (UP5K) and instantiate HSOSC (ports <code>CLKHFPU</code>, <code>CLKHFEN</code>, <code>CLKHF</code>; param <code>CLKHF_DIV</code>).</li>
+<li>Ask for a synthesizable reset: avoid <code>initial</code>; include a synchronous reset or a small POR counter.</li>
+<li>Request a sim-friendly testbench: faster divider + self-check to validate logic quickly.</li>
+<li>Ask for Radiant-specific guidance: prefer Device Constraint Editor notes over generic <code>.lpf</code>.</li>
+<li>Iterate with exact error text: paste Radiant/Questa messages back to the LLM for precise fixes.</li>
+</ol>
+</section>
+<section id="appendix-figure-index" class="level3">
+<h3 class="anchored" data-anchor-id="appendix-figure-index">Appendix: Figure index</h3>
+<ul>
+<li>Block diagram: <code>hmc-e155-portfolio/labs/Lab1/images/sv.jpg</code><br>
+</li>
+<li>Schematic &amp; current calc: <code>hmc-e155-portfolio/labs/Lab1/images/elec.jpg</code><br>
+</li>
+<li>Top-level waves: <code>hmc-e155-portfolio/labs/Lab1/images/lab test waves.png</code>, <code>hmc-e155-portfolio/labs/Lab1/images/lab vectors.png</code><br>
+</li>
+<li>LED unit waves: <code>hmc-e155-portfolio/labs/Lab1/images/led test waves.png</code>, <code>hmc-e155-portfolio/labs/Lab1/images/led text tests.png</code><br>
+</li>
+<li>Seven-seg waves: <code>hmc-e155-portfolio/labs/Lab1/images/seven seg waves.png</code>, <code>hmc-e155-portfolio/labs/Lab1/images/seven seg tests.png</code></li>
+</ul>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

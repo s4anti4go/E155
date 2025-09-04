@@ -28,6 +28,55 @@
     "text": "I’m excited for MicroPs because I get to see my code affect hardware in the real world. Writing something, probing a pin, and watching the scope confirm it did what I intended is the kind of feedback loop that makes the work satisfying and helps me absorb information.\nThis semester I want to build fluency in the basics that make systems reliable: read reference manuals without getting stuck, set up clocks cleanly, bring up GPIO/timers/serial, and write small drivers with clear init and ISR paths. I want to use interrupts and DMA with intent, understand when HAL or an RTOS helps (and when it doesn’t), and get better at debugging with a logic analyzer and scope instead of guessing.\nBy the end, I’m excited to be able to partake in a focused project I care about that uses the information I learned from the class. Looking forward to it :D"
   },
   {
+    "objectID": "labs/Lab 1/Lab1.html",
+    "href": "labs/Lab 1/Lab1.html",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "",
+    "text": "In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input to a common-anode 7-segment display. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K; MCU echo tests in SEGGER Embedded Studio confirmed MCU↔︎FPGA connectivity."
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#introduction",
+    "href": "labs/Lab 1/Lab1.html#introduction",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "",
+    "text": "In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input to a common-anode 7-segment display. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K; MCU echo tests in SEGGER Embedded Studio confirmed MCU↔︎FPGA connectivity."
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#design-testing-methodology",
+    "href": "labs/Lab 1/Lab1.html#design-testing-methodology",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Design & Testing Methodology",
+    "text": "Design & Testing Methodology\n\nArchitecture\n\nInternal 48 MHz HSOSC feeds a power-on reset counter and a parameterized divider that creates a ~2.4 Hz tick for led[2].\nled_logic implements the required LED truth tables and optional active-low polarity.\nSevenSeg is a combinational hex→segments decoder with active-low outputs (for a common-anode display).\n\n\n\n\n\n\n\nFigure 1: Block diagram of the top-level (sbf_lab1).\n\n\n\n\n\nUnit tests (simulation)\nSelf-checking testbenches read .tv vectors: - tb_SevenSeg_tv verifies the 0x0–0xF map. - tb_led_logic_tv checks both active-high and active-low instances. - tb_lab1_sbf_tv checks seg and led[1:0] at top level (blink bit ignored).\n\nOn the single “error”: one vector intentionally contains unknowns (xxxxxxx) to represent a “don’t-care” state during initialization. The testbench expects xxxxxxx, while real hardware (with pull-ups and reset) resolves to 1111111 (all segments off). Functionally correct; the failure is in the expected vector, not the DUT.\n\n\n\nHardware bring-up\n\nVerified +5 V and +3.3 V LDO outputs on VIN power before inserting modules.\nWired one side of the dual 7-segment (common-anode) with series resistors on each segment; anode to 3.3 V.\nUsed ~1 kΩ series resistors → ≈3.3 mA/segment (ignoring LED (V_f)), comfortably within limits: [ I = 3.3  ]\n\n\n\n\n\n\n\nFigure 2: Hand-drawn schematic and current note (common-anode with ~1 kΩ series resistors)."
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#technical-documentation",
+    "href": "labs/Lab 1/Lab1.html#technical-documentation",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Technical Documentation",
+    "text": "Technical Documentation\n\nCode directory: code/\n\nFPGA design: SevenSeg, BlinkDiv, led_logic, sbf_lab1 (top).\nTestbenches: tb_SevenSeg_tv, tb_led_logic_tv, tb_lab1_sbf_tv.\n\nTools: Radiant (synthesis, constraints, Netlist Analyzer), QuestaSim Lattice Edition (simulation), SEGGER Embedded Studio (MCU).\n\n\nLED behavior specification\n\n\n\nS1\nS0\nled[0]\n\n\n\n\n0\n0\nOFF\n\n\n0\n1\nON\n\n\n1\n0\nON\n\n\n1\n1\nOFF\n\n\n\n\n\n\nS3\nS2\nled[1]\n\n\n\n\n0\n0\nOFF\n\n\n0\n1\nOFF\n\n\n1\n0\nOFF\n\n\n1\n1\nON\n\n\n\nled[2] blinks at ~2.4 Hz from the divider: [ =-1=10{,}000{,}000-1 ]\n\n\nSeven-segment notes\n\nCommon-anode display → active-low segment lines (0 turns a segment on).\nNaming: seg[0]=A … seg[6]=G."
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#results-discussion",
+    "href": "labs/Lab 1/Lab1.html#results-discussion",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Results & Discussion",
+    "text": "Results & Discussion\n\nSeven-segment unit tests\n\n\n\n\n\n\n\n\nFigure 3: SevenSeg waves across 0x0–0xF.\n\n\n\n\n\n\n\n\n\n\nFigure 4: SevenSeg transcript (1 expected X-case mismatch at vec 0).\n\n\n\n\n\n\n\nLED logic unit tests\n\n\n\n\n\n\n\n\nFigure 5: LED logic waves (active-high and active-low instances).\n\n\n\n\n\n\n\n\n\n\nFigure 6: LED logic transcript (all pass).\n\n\n\n\n\n\n\nTop-level simulation\n\n\n\n\n\n\n\n\nFigure 7: Top-level (sbf_lab1) QuestaSim waves sweeping s=0..F.\n\n\n\n\n\n\n\n\n\n\nFigure 8: Top-level transcript (1 error corresponds to X-expectation init vector).\n\n\n\n\n\nInterpretation.\n- led_logic passes all vectors for both polarities.\n- SevenSeg and top-level each show one flagged vector where the testbench expects unknowns; hardware resolves to all off (1111111). Functionality is correct; the discrepancy is only in the expected file’s init case.\n- Divider math and POR behavior match intent; led[2] toggles at the expected rate (simulation time scaled)."
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#conclusion",
+    "href": "labs/Lab 1/Lab1.html#conclusion",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "Conclusion",
+    "text": "Conclusion\nI assembled and powered the E155 dev board, verified MCU↔︎FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware—acceptable and documented.\nTime spent: 20 hours. All Code https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201 —"
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#ai-implementation",
+    "href": "labs/Lab 1/Lab1.html#ai-implementation",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "AI Implementation",
+    "text": "AI Implementation\n\nPrompt\n\nWrite SystemVerilog HDL to leverage the internal high speed oscillator in the Lattice UP5K FPGA and blink an LED at 2 Hz. Take full advantage of SystemVerilog syntax, for example, using logic instead of wire and reg.\n\n\n\nWhat the LLM produced (Gemini)\nGood ideas it used: - Parameterized divider (CLK_FREQ, BLINK_FREQ) with $clog2 sizing - Modern SV constructs (logic, always_ff) - Clear split: top module that wraps an oscillator primitive + a blinker child\nTop-level snippet returned (abridged): module led_blink_top (output logic o_led); logic clk_48mhz; SB_HFOSC u_hfosc ( .CLKHFPU(1’b1), .CLKHFEN(1’b1), .CLKHF(clk_48mhz) ); defparam u_hfosc.CLKHF_DIV = “0b00”; // 48 MHz led_blinker u_led_blinker (.clk(clk_48mhz), .led(o_led)); endmodule\n\n\nSynthesis outcome\nRadiant failed at the oscillator instantiation with: VERI-1063: instantiating unknown module SB_HFOSC Root cause: Radiant’s iCE40 UltraPlus technology library expects the HSOSC primitive, not SB_HFOSC (the SB_* form is common in iCEcube2 examples).\nFix applied (works in Radiant): // iCE40UP internal HF oscillator HSOSC #(.CLKHF_DIV(2’b00)) // 00 = 48 MHz hf_osc (.CLKHFPU(1’b1), .CLKHFEN(1’b1), .CLKHF(clk));\nI also replaced the LLM’s initial-based register inits with a tiny synchronous power-on reset (POR) counter so hardware powers up in a known state.\n\n\nQuality rating (and why)\n\nRating: B\n\nStrengths: idiomatic SV, readable, correct divide-by-N math, parameterized for reuse\n\nWeak spots: vendor primitive mismatch (SB_HFOSC vs HSOSC), defparam string style (\"0b00\"), reliance on initial for synthesis reset\n\n\n\nWhat I learned / new constructs\n\n$clog2 is handy for auto-sizing counters and synthesizes cleanly on UP5K.\nParameterizing the blink frequency made switching between 2 Hz (prompt) and 2.4 Hz (lab) a one-line change.\n\n\n\nErrors & warnings encountered\n\nRadiant: VERI-1063 instantiating unknown module SB_HFOSC → resolved by switching to HSOSC #(.CLKHF_DIV(2'b00)) and wiring CLKHFPU/CLKHFEN/CLKHF.\n\n\n\nTips for using LLMs for HDL (next-time playbook)\n\nSpecify tool, family, and exact primitive in the prompt: target Lattice Radiant for iCE40 UltraPlus (UP5K) and instantiate HSOSC (ports CLKHFPU, CLKHFEN, CLKHF; param CLKHF_DIV).\nAsk for a synthesizable reset: avoid initial; include a synchronous reset or a small POR counter.\nRequest a sim-friendly testbench: faster divider + self-check to validate logic quickly.\nAsk for Radiant-specific guidance: prefer Device Constraint Editor notes over generic .lpf.\nIterate with exact error text: paste Radiant/Questa messages back to the LLM for precise fixes.\n\n\n\nAppendix: Figure index\n\nBlock diagram: hmc-e155-portfolio/labs/Lab1/images/sv.jpg\n\nSchematic & current calc: hmc-e155-portfolio/labs/Lab1/images/elec.jpg\n\nTop-level waves: hmc-e155-portfolio/labs/Lab1/images/lab test waves.png, hmc-e155-portfolio/labs/Lab1/images/lab vectors.png\n\nLED unit waves: hmc-e155-portfolio/labs/Lab1/images/led test waves.png, hmc-e155-portfolio/labs/Lab1/images/led text tests.png\n\nSeven-seg waves: hmc-e155-portfolio/labs/Lab1/images/seven seg waves.png, hmc-e155-portfolio/labs/Lab1/images/seven seg tests.png"
+  },
+  {
     "objectID": "resources/resource1.html",
     "href": "resources/resource1.html",
     "title": "E155 Course Page",
