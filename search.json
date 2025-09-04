@@ -46,7 +46,7 @@
     "href": "labs/Lab 1/Lab1.html#technical-documentation",
     "title": "Lab 1: FPGA and MCU Setup and Testing",
     "section": "Technical Documentation",
-    "text": "Technical Documentation\n\nCode directory: code/\n\nFPGA design: SevenSeg, BlinkDiv, led_logic, sbf_lab1 (top).\nTestbenches: tb_SevenSeg_tv, tb_led_logic_tv, tb_lab1_sbf_tv.\n\nTools: Radiant (synthesis, constraints, Netlist Analyzer), QuestaSim Lattice Edition (simulation), SEGGER Embedded Studio (MCU).\n\n\nLED behavior specification\n\n\n\nS1\nS0\nled[0]\n\n\n\n\n0\n0\nOFF\n\n\n0\n1\nON\n\n\n1\n0\nON\n\n\n1\n1\nOFF\n\n\n\n\n\n\nS3\nS2\nled[1]\n\n\n\n\n0\n0\nOFF\n\n\n0\n1\nOFF\n\n\n1\n0\nOFF\n\n\n1\n1\nON\n\n\n\nled[2] blinks at ~2.4 Hz from the divider: \\[\n\\mathrm{TOGGLE\\_COUNT}\n= \\frac{48\\,\\mathrm{MHz}}{2 \\cdot 2.4\\,\\mathrm{Hz}} - 1\n= 10{,}000{,}000 - 1\n\\]\n\n\nSeven-segment notes\n\nCommon-anode display → active-low segment lines (0 turns a segment on).\nNaming: seg[0]=A … seg[6]=G.\nTo turn on correct segments:"
+    "text": "Technical Documentation\n\nCode directory: https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201\n\nFPGA design: `sbf_lab1 (top).\nTestbenches: tb_all.sv.\n\nTools: Radiant (synthesis, constraints, Netlist Analyzer), QuestaSim Lattice Edition (simulation), SEGGER Embedded Studio (MCU).\n\n\nLED behavior specification\n\n\n\nS1\nS0\nled[0]\n\n\n\n\n0\n0\nOFF\n\n\n0\n1\nON\n\n\n1\n0\nON\n\n\n1\n1\nOFF\n\n\n\n\n\n\nS3\nS2\nled[1]\n\n\n\n\n0\n0\nOFF\n\n\n0\n1\nOFF\n\n\n1\n0\nOFF\n\n\n1\n1\nON\n\n\n\nled[2] blinks at ~2.4 Hz from the divider: \\[\n\\mathrm{TOGGLE\\_COUNT}\n= \\frac{48\\,\\mathrm{MHz}}{2 \\cdot 2.4\\,\\mathrm{Hz}} - 1\n= 10{,}000{,}000 - 1\n\\]\n\n\nSeven-segment notes\n\nCommon-anode display → active-low segment lines (0 turns a segment on).\nNaming: seg[0]=A … seg[6]=G.\nTo turn on correct segments:"
   },
   {
     "objectID": "labs/Lab 1/Lab1.html#results-discussion",
@@ -60,7 +60,14 @@
     "href": "labs/Lab 1/Lab1.html#conclusion",
     "title": "Lab 1: FPGA and MCU Setup and Testing",
     "section": "Conclusion",
-    "text": "Conclusion\nI assembled and powered the E155 dev board, verified MCU↔︎FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware—acceptable and documented.\nTime spent: 20 hours. All Code https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201 —"
+    "text": "Conclusion\nI assembled and powered the E155 dev board, verified MCU↔︎FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware.\nTime spent: 20 hours."
+  },
+  {
+    "objectID": "labs/Lab 1/Lab1.html#all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201",
+    "href": "labs/Lab 1/Lab1.html#all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201",
+    "title": "Lab 1: FPGA and MCU Setup and Testing",
+    "section": "All Code https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201",
+    "text": "All Code https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201"
   },
   {
     "objectID": "labs/Lab 1/Lab1.html#ai-implementation",

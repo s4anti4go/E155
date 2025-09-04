@@ -175,6 +175,7 @@ window.Quarto = {
   <li><a href="#top-level-simulation" id="toc-top-level-simulation" class="nav-link" data-scroll-target="#top-level-simulation">Top-level simulation</a></li>
   </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201" id="toc-all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201" class="nav-link" data-scroll-target="#all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201"><strong>All Code</strong> https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201</a></li>
   <li><a href="#ai-implementation" id="toc-ai-implementation" class="nav-link" data-scroll-target="#ai-implementation">AI Implementation</a>
   <ul class="collapse">
   <li><a href="#prompt" id="toc-prompt" class="nav-link" data-scroll-target="#prompt">Prompt</a></li>
@@ -284,10 +285,10 @@ Figure&nbsp;2: Hand-drawn schematic and current note (common-anode with ~1 kΩ s
 <section id="technical-documentation" class="level2">
 <h2 class="anchored" data-anchor-id="technical-documentation">Technical Documentation</h2>
 <ul>
-<li><strong>Code directory:</strong> <code>code/</code>
+<li><strong>Code directory:</strong> <code>https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201</code>
 <ul>
-<li>FPGA design: <code>SevenSeg</code>, <code>BlinkDiv</code>, <code>led_logic</code>, <code>sbf_lab1</code> (top).</li>
-<li>Testbenches: <code>tb_SevenSeg_tv</code>, <code>tb_led_logic_tv</code>, <code>tb_lab1_sbf_tv</code>.</li>
+<li>FPGA design: `<code>sbf_lab1</code> (top).</li>
+<li>Testbenches: <code>tb_all.sv</code>.</li>
 </ul></li>
 <li><strong>Tools:</strong> Radiant (synthesis, constraints, Netlist Analyzer), QuestaSim Lattice Edition (simulation), SEGGER Embedded Studio (MCU).</li>
 </ul>
@@ -463,8 +464,11 @@ Figure&nbsp;8: Top-level transcript (1 error corresponds to X-expectation init v
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>I assembled and powered the E155 dev board, verified MCU↔︎FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware—acceptable and documented.</p>
-<p><strong>Time spent:</strong> 20 hours. <strong>All Code</strong> https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201 —</p>
+<p>I assembled and powered the E155 dev board, verified MCU↔︎FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware.</p>
+<p><strong>Time spent:</strong> 20 hours.</p>
+</section>
+<section id="all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201" class="level2">
+<h2 class="anchored" data-anchor-id="all-code-httpsgithub.coms4anti4goe155treemainfpgaradiantprojectlab201"><strong>All Code</strong> https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201</h2>
 </section>
 <section id="ai-implementation" class="level2">
 <h2 class="anchored" data-anchor-id="ai-implementation">AI Implementation</h2>
