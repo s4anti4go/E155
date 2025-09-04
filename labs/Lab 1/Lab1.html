@@ -234,7 +234,7 @@ window.Quarto = {
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input from the on-board DIP switches (SW6) to a common-anode 7-segment display. The switches provide s[3:0] directly into the FPGA; the decoder drives seg[6:0] (active-low) through series resistors to the display so that the selected hex digit lights correctly. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K;</p>
+<p>In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input from the on-board DIP switches (SW6) to a common-anode 7-segment display. The switches provide s[3:0] directly into the FPGA; the decoder drives seg[6:0] (active-low) through 1k ohm resistors to the display so that the selected hex digit lights correctly. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K;</p>
 </section>
 <section id="design-testing-methodology" class="level2">
 <h2 class="anchored" data-anchor-id="design-testing-methodology">Design &amp; Testing Methodology</h2>
