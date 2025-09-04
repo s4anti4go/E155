@@ -122,7 +122,7 @@ Self-checking testbenches read `.tv` vectors:
 I assembled and powered the E155 dev board, verified MCU↔FPGA connectivity, and implemented the required FPGA logic: LED truth tables, a ~2.4 Hz blink, and a combinational 7-segment decoder for a common-anode display. Simulation, synthesis, and on-board testing confirm correct behavior. The lone “failure” in automated tests is a deliberate X-expectation vector that resolves to “all off” in hardware—acceptable and documented.
 
 **Time spent:** 20 hours.
-**All Code** https://github.com/s4anti4go/E155 
+**All Code** https://github.com/s4anti4go/E155/tree/main/FPGA/RadiantProject/Lab%201
 ---
 
 ## AI Implementation
