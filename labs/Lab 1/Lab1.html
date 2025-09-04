@@ -72,6 +72,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -204,7 +233,7 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input to a common-anode 7-segment display. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K; MCU echo tests in SEGGER Embedded Studio confirmed MCU↔︎FPGA connectivity.</p>
+<p>In this lab I assembled the E155 development board, verified power rails, and brought up both the UPduino v3.1 FPGA (iCE40-UP5K) and the Nucleo-L432KC MCU. I then wrote SystemVerilog to (1) drive three LEDs per the given truth tables and (2) decode a 4-bit input from the on-board DIP switches (SW6) to a common-anode 7-segment display. The switches provide s[3:0] directly into the FPGA; the decoder drives seg[6:0] (active-low) through series resistors to the display so that the selected hex digit lights correctly. Designs were simulated in QuestaSim, synthesized in Lattice Radiant, and programmed to the UP5K;</p>
 </section>
 <section id="design-testing-methodology" class="level2">
 <h2 class="anchored" data-anchor-id="design-testing-methodology">Design &amp; Testing Methodology</h2>
@@ -326,13 +355,18 @@ Figure&nbsp;2: Hand-drawn schematic and current note (common-anode with ~1 kΩ s
 </tr>
 </tbody>
 </table>
-<p><code>led[2]</code> blinks at ~2.4 Hz from the divider: [ =-1=10{,}000{,}000-1 ]</p>
+<p><code>led[2]</code> blinks at ~2.4 Hz from the divider: <span class="math display">\[
+\mathrm{TOGGLE\_COUNT}
+= \frac{48\,\mathrm{MHz}}{2 \cdot 2.4\,\mathrm{Hz}} - 1
+= 10{,}000{,}000 - 1
+\]</span></p>
 </section>
 <section id="seven-segment-notes" class="level3">
 <h3 class="anchored" data-anchor-id="seven-segment-notes">Seven-segment notes</h3>
 <ul>
 <li>Common-anode display → <strong>active-low</strong> segment lines (<code>0</code> turns a segment <strong>on</strong>).</li>
 <li>Naming: <code>seg[0]=A … seg[6]=G</code>.</li>
+<li>To turn on correct segments: <img src="images/seven_seg_map.png" id="fig-block" class="img-fluid" style="width:35.0%" data-align="center" alt="seven segment display."></li>
 </ul>
 </section>
 </section>
