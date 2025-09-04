@@ -1,0 +1,5 @@
+---
+title: "MAN 6400 Data Sheet"
+description: "https://hmc-e155.github.io/assets/doc/MAN64x0%20Series.pdf"
+draft: false
+---
