@@ -43,7 +43,7 @@ Self-checking testbenches read `.tv` vectors:
   I \approx \frac{3.3\ \text{V}}{1\,\text{k}\Omega} = 3.3\ \text{mA}
   \]
 
-![Hand-drawn schematic and current note (common-anode with ~1 kΩ series resistors).](images/elec.jpg){#fig-schematic fig-alt="7-segment wiring and LED current calc." width="90%"}
+![Hand-drawn schematic and current note (common-anode with ~1 kΩ resistors).](images/elec.jpg){#fig-schematic fig-alt="7-segment wiring and LED current calc." width="90%"}
 
 ## Technical Documentation
 
