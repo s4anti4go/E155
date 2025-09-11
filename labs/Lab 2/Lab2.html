@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Santiago Burgos-Fallon">
-<meta name="dcterms.date" content="2025-09-04">
+<meta name="dcterms.date" content="2025-09-11">
 <meta name="description" content="A time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins">
 
 <title>Lab 2: Multiplexed 7-Segment Display – E155 Portfolio</title>
@@ -72,6 +72,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -122,8 +151,41 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#design-testing-methodology" id="toc-design-testing-methodology" class="nav-link" data-scroll-target="#design-testing-methodology">Design &amp; Testing Methodology</a>
+  <ul class="collapse">
+  <li><a href="#architecture" id="toc-architecture" class="nav-link" data-scroll-target="#architecture">Architecture</a></li>
+  <li><a href="#multiplex-timing" id="toc-multiplex-timing" class="nav-link" data-scroll-target="#multiplex-timing">Multiplex timing</a></li>
+  <li><a href="#hdl-overview-key-excerpts" id="toc-hdl-overview-key-excerpts" class="nav-link" data-scroll-target="#hdl-overview-key-excerpts">HDL overview (key excerpts)</a></li>
+  <li><a href="#unit-tests-simulation" id="toc-unit-tests-simulation" class="nav-link" data-scroll-target="#unit-tests-simulation">Unit tests (simulation)</a></li>
+  </ul></li>
+  <li><a href="#electrical-design-red-led-current-calculations" id="toc-electrical-design-red-led-current-calculations" class="nav-link" data-scroll-target="#electrical-design-red-led-current-calculations">Electrical Design: red LED current calculations</a>
+  <ul class="collapse">
+  <li><a href="#segment-resistor-per-segment-mathbfr-240omega-common-anode-fpga-sinks" id="toc-segment-resistor-per-segment-mathbfr-240omega-common-anode-fpga-sinks" class="nav-link" data-scroll-target="#segment-resistor-per-segment-mathbfr-240omega-common-anode-fpga-sinks">Segment resistor (per segment, <span class="math inline">\(\mathbf{R} = 240\,\Omega\)</span>; common-anode, FPGA <strong>sinks</strong>)</a></li>
+  <li><a href="#solid-stand-alone-red-leds-mathbfr-1mathrmkomega-fpga-sinks-no-pnp" id="toc-solid-stand-alone-red-leds-mathbfr-1mathrmkomega-fpga-sinks-no-pnp" class="nav-link" data-scroll-target="#solid-stand-alone-red-leds-mathbfr-1mathrmkomega-fpga-sinks-no-pnp">Solid stand-alone red LEDs (<span class="math inline">\(\mathbf{R} = 1\,\mathrm{k\Omega}\)</span>, FPGA sinks, no PNP)</a></li>
+  <li><a href="#pnp-anode-driver-per-digit-mathbfr_mathrmb-1mathrmkomega" id="toc-pnp-anode-driver-per-digit-mathbfr_mathrmb-1mathrmkomega" class="nav-link" data-scroll-target="#pnp-anode-driver-per-digit-mathbfr_mathrmb-1mathrmkomega">PNP anode driver (per digit, <span class="math inline">\(\mathbf{R}_{\mathrm{B}} = 1\,\mathrm{k\Omega}\)</span>)</a></li>
+  </ul></li>
+  <li><a href="#technical-documentation" id="toc-technical-documentation" class="nav-link" data-scroll-target="#technical-documentation">Technical Documentation</a>
+  <ul class="collapse">
+  <li><a href="#notes-that-matter-for-this-lab" id="toc-notes-that-matter-for-this-lab" class="nav-link" data-scroll-target="#notes-that-matter-for-this-lab">Notes that matter for this lab</a></li>
+  </ul></li>
+  <li><a href="#results-discussion" id="toc-results-discussion" class="nav-link" data-scroll-target="#results-discussion">Results &amp; Discussion</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#ai-implementation" id="toc-ai-implementation" class="nav-link" data-scroll-target="#ai-implementation">AI Implementation</a>
+  <ul class="collapse">
+  <li><a href="#prompt-used" id="toc-prompt-used" class="nav-link" data-scroll-target="#prompt-used">Prompt used</a></li>
+  <li><a href="#what-the-llm-produced" id="toc-what-the-llm-produced" class="nav-link" data-scroll-target="#what-the-llm-produced">What the LLM produced</a></li>
+  <li><a href="#quality-rating-and-why" id="toc-quality-rating-and-why" class="nav-link" data-scroll-target="#quality-rating-and-why">Quality rating (and why)</a></li>
+  <li><a href="#did-it-synthesize-first-time" id="toc-did-it-synthesize-first-time" class="nav-link" data-scroll-target="#did-it-synthesize-first-time">Did it synthesize first time?</a></li>
+  <li><a href="#what-id-do-differently-next-time-with-an-llm" id="toc-what-id-do-differently-next-time-with-an-llm" class="nav-link" data-scroll-target="#what-id-do-differently-next-time-with-an-llm">What I’d do differently next time with an LLM</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -155,7 +217,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 4, 2025</p>
+      <p class="date">September 11, 2025</p>
     </div>
   </div>
   
@@ -167,8 +229,262 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab I implemented <strong>time-multiplexing</strong> to drive a dual common‑anode seven‑segment display using a <strong>single</strong> hex→segments decoder module. Two 4‑bit nibbles (from DIP switches) are alternately presented to the decoder; high‑side <strong>PNP</strong> transistors enable exactly one digit at a time. I also displayed the 5‑bit <strong>sum</strong> of the two hexadecimal inputs on five LEDs and verified safe currents per the iCE40‑UP5K datasheet (§4.17). Designs were simulated in QuestaSim and synthesized in Lattice Radiant.</p>
+</section>
+<section id="design-testing-methodology" class="level2">
+<h2 class="anchored" data-anchor-id="design-testing-methodology">Design &amp; Testing Methodology</h2>
+<section id="architecture" class="level3">
+<h3 class="anchored" data-anchor-id="architecture">Architecture</h3>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="top level muxed design." data-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/bd.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="top level muxed design.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Block diagram of the top-level (<code>top</code>).
+</figcaption>
+</figure>
+</div>
+<ul>
+<li><strong>Clocking.</strong> The internal HF oscillator (HSOSC) runs at <strong>6 MHz</strong> (<code>CLKHF_DIV=2'b11</code>).<br>
+</li>
+<li><strong>Multiplexer/Scan.</strong> <code>Dmux</code> divides the 6 MHz clock to a scan clock <code>DivClk</code>, selects which nibble feeds the decoder, and asserts the corresponding digit enable (<code>En1</code>, <code>En2</code>).<br>
+</li>
+<li><strong>Decoder.</strong> <code>SevenSeg</code> is a <strong>combinational</strong> hex→segments decoder with <strong>active‑LOW</strong> outputs for a common‑anode display (<code>Seg[6:0]</code>, where <code>Seg[0]=A … Seg[6]=G</code>).<br>
+</li>
+<li><strong>Top‑level.</strong> <code>top</code> wires the pieces together and computes the 5‑bit sum on <code>Sum[4:0]</code> (LEDs are active‑LOW on our board, so the sum is inverted).</li>
+</ul>
+</section>
+<section id="multiplex-timing" class="level3">
+<h3 class="anchored" data-anchor-id="multiplex-timing">Multiplex timing</h3>
+<p>With HSOSC at 6 MHz and terminal count <strong>N</strong>, <code>Dmux</code> toggles <code>DivClk</code> every <code>N</code> cycles; the scan frequency is:</p>
+<p><span class="math display">\[
+f_{\text{scan}}=\frac{f_{\text{clk}}}{2N}.
+\]</span></p>
+<p>In my current code <span class="math inline">\(N=60{,}000\)</span>, so</p>
+<p><span class="math display">\[
+f_{\text{scan}}=\frac{6\,\mathrm{MHz}}{2\cdot 60{,}000}\approx \mathbf{50\ \mathrm{Hz}}.
+\]</span></p>
+</section>
+<section id="hdl-overview-key-excerpts" class="level3">
+<h3 class="anchored" data-anchor-id="hdl-overview-key-excerpts">HDL overview (key excerpts)</h3>
+<ul>
+<li><strong><code>top.sv</code></strong>
+<ul>
+<li>HSOSC at 6 MHz, instantiates <code>Dmux</code> and <code>SevenSeg</code>, drives <code>Sum = ~(Sw1 + Sw2)</code>.</li>
+</ul></li>
+<li><strong><code>Dmux.sv</code></strong>
+<ul>
+<li><code>SegInput = (DivClk) ? Sw1 : Sw2;</code><br>
+</li>
+<li><code>En1 = ~DivClk; En2 = DivClk;</code><br>
+</li>
+<li>Counter toggles <code>DivClk</code> at the chosen scan rate.</li>
+</ul></li>
+<li><strong><code>SevenSeg.sv</code></strong>
+<ul>
+<li>16‑entry <code>case</code> producing <strong>active‑LOW</strong> segment patterns for 0x0–0xF (e.g., <code>4'b1001 /*9*/ → Seg=7'b0001100</code>).</li>
+</ul></li>
+</ul>
+</section>
+<section id="unit-tests-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="unit-tests-simulation">Unit tests (simulation)</h3>
+<ul>
+<li><code>SevenSeg_tb.sv</code> (self‑checking): sweeps all 16 hex values and compares <code>Seg</code> to expected patterns.<br>
+</li>
+<li><code>top_tb.sv</code>: iterates <code>Sw1, Sw2</code> over 0x00–0xFF and checks <code>Sum == ~(Sw1 + Sw2)</code> and basic enable/segment sanity during scanning.<br>
+</li>
+<li><code>Dmux_tb.sv</code>: spot‑checks scan duty and selection timing.</li>
+</ul>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-7seg-waves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="SevenSeg waveform sweep for all hex digits.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-7seg-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/seven seg waves.png" class="img-fluid figure-img" alt="SevenSeg waveform sweep for all hex digits.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-7seg-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: SevenSeg waves across 0x0–0xF.
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-7seg-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="16 tests, 1 error due to X-expectation vector.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-7seg-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/seven seg tests.png" class="img-fluid figure-img" alt="16 tests, 1 error due to X-expectation vector.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-7seg-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: SevenSeg transcript (1 expected X-case mismatch at vec 0).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-top-waves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="top waveform sweep for all hex digits.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-top-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/topwaves.png" class="img-fluid figure-img" alt="top waveform sweep for all hex digits.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-top-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: top waves across 0x00–0xFF.
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-top-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="256 tests,0 Errors :D.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-top-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/seven seg tests.png" class="img-fluid figure-img" alt="256 tests,0 Errors :D.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-top-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: top transcript (all pass).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="electrical-design-red-led-current-calculations" class="level2">
+<h2 class="anchored" data-anchor-id="electrical-design-red-led-current-calculations">Electrical Design: red LED current calculations</h2>
+<p>This display is <strong>common‑anode</strong>. Each segment has its <strong>own resistor</strong> and is sunk by an FPGA pin when <strong>ON</strong> (segment output = <code>0</code>). The anode of the active digit is driven high via a PNP (2N3906). <img src="images/genschem.jpeg" id="fig-schematic" class="img-fluid" style="width:90.0%" alt="7-segment wiring and LED current calc."></p>
+<section id="segment-resistor-per-segment-mathbfr-240omega-common-anode-fpga-sinks" class="level3">
+<h3 class="anchored" data-anchor-id="segment-resistor-per-segment-mathbfr-240omega-common-anode-fpga-sinks">Segment resistor (per segment, <span class="math inline">\(\mathbf{R} = 240\,\Omega\)</span>; common-anode, FPGA <strong>sinks</strong>)</h3>
+<p>With a PNP digit switch, the active digit’s anode is approximately <span class="math inline">\(3.3 - V_{\mathrm{CE,sat}}\)</span>. The cathode path includes the LED and the FPGA’s <span class="math inline">\(V_{\mathrm{OL}}\)</span>.</p>
+<p><span class="math display">\[
+V_{\mathrm{R}} = (3.3 - V_{\mathrm{CE,sat}}) - V_{\mathrm{F}} - V_{\mathrm{OL}}, \qquad
+I_{\mathrm{seg}} = \frac{V_{\mathrm{R}}}{R_{\mathrm{seg}}}.
+\]</span></p>
+<p>Use conservative bounds <span class="math inline">\(V_{\mathrm{CE,sat}} \approx 0.25\,\mathrm{V}\)</span> (2N3906) and Table 4.13 limits for <span class="math inline">\(V_{\mathrm{OL}}\)</span>.</p>
+<p><strong>Typical case</strong> (<span class="math inline">\(V_{\mathrm{F}} \approx 1.8\,\mathrm{V}, V_{\mathrm{OL}} \approx 0.2\,\mathrm{V}\)</span>): <span class="math display">\[
+V_{\mathrm{R}} = 3.3 - 0.25 - 1.8 - 0.2 = 1.05\,\mathrm{V}, \qquad
+I_{\mathrm{seg}} = \frac{1.05}{240} \approx 4.38\,\mathrm{mA}.
+\]</span></p>
+<p><strong>Conservative case</strong> (<span class="math inline">\(V_{\mathrm{F}} \approx 2.0\,\mathrm{V}, V_{\mathrm{OL}} \approx 0.4\,\mathrm{V}\)</span>): <span class="math display">\[
+V_{\mathrm{R}} = 3.3 - 0.25 - 2.0 - 0.4 = 0.65\,\mathrm{V}, \qquad
+I_{\mathrm{seg}} = \frac{0.65}{240} \approx 2.71\,\mathrm{mA}.
+\]</span></p>
+<p>Because the display is multiplexed at ≈50 % duty, the average segment current is <span class="math display">\[I_{\mathrm{seg,avg}} \approx 0.5 \cdot I_{\mathrm{seg}}\]</span> ≈2.19 mA typical, ≈1.35 mA conservative.</p>
+<hr>
+</section>
+<section id="solid-stand-alone-red-leds-mathbfr-1mathrmkomega-fpga-sinks-no-pnp" class="level3">
+<h3 class="anchored" data-anchor-id="solid-stand-alone-red-leds-mathbfr-1mathrmkomega-fpga-sinks-no-pnp">Solid stand-alone red LEDs (<span class="math inline">\(\mathbf{R} = 1\,\mathrm{k\Omega}\)</span>, FPGA sinks, no PNP)</h3>
+<p>Here the resistor sees <span class="math inline">\(V_{\mathrm{R}} = 3.3 - V_{\mathrm{F}} - V_{\mathrm{OL}}\)</span>.</p>
+<p><strong>Typical</strong> (<span class="math inline">\(V_{\mathrm{F}} \approx 1.8\,\mathrm{V}, V_{\mathrm{OL}} \approx 0.2\,\mathrm{V}\)</span>): <span class="math display">\[I = \frac{3.3 - 1.8 - 0.2}{1000} = \frac{1.3}{1000} \approx 1.30\,\mathrm{mA}.\]</span></p>
+<p><strong>Conservative</strong> (<span class="math inline">\(V_{\mathrm{OL}} \approx 0.4\,\mathrm{V}\)</span>): <span class="math display">\[I = \frac{3.3 - 1.8 - 0.4}{1000} = \frac{1.1}{1000} \approx 1.10\,\mathrm{mA}.\]</span></p>
+<hr>
+</section>
+<section id="pnp-anode-driver-per-digit-mathbfr_mathrmb-1mathrmkomega" class="level3">
+<h3 class="anchored" data-anchor-id="pnp-anode-driver-per-digit-mathbfr_mathrmb-1mathrmkomega">PNP anode driver (per digit, <span class="math inline">\(\mathbf{R}_{\mathrm{B}} = 1\,\mathrm{k\Omega}\)</span>)</h3>
+<p>Worst-case segment load when displaying “8”: <span class="math display">\[I_{\mathrm{C}} \approx 7 \cdot I_{\mathrm{seg}}.\]</span></p>
+<p>Base-resistor drop when ON: <span class="math display">\[V_{\mathrm{RB}} \approx V_{\mathrm{E}} - V_{\mathrm{BE,sat}} - V_{\mathrm{OL}}.\]</span></p>
+<p>With <span class="math inline">\(V_{\mathrm{BE,sat}} \approx 0.65\text{–}0.85\,\mathrm{V}\)</span> and <span class="math inline">\(V_{\mathrm{OL}} \approx 0.2\text{–}0.4\,\mathrm{V}\)</span>, <span class="math display">\[V_{\mathrm{RB}} \approx 3.3 - (0.65\text{–}0.85) - (0.2\text{–}0.4) \approx 2.45\text{–}2.05\,\mathrm{V}.\]</span></p>
+<p>For <span class="math inline">\(R_{\mathrm{B}} = 1\,\mathrm{k\Omega}\)</span>, <span class="math display">\[I_{\mathrm{B}} \approx \frac{V_{\mathrm{RB}}}{R_{\mathrm{B}}} \approx 2.05\text{–}2.45\,\mathrm{mA}.\]</span></p>
+<p><strong>Forced-beta check</strong> <span class="math inline">\(\beta_{\mathrm{forced}} = I_{\mathrm{C}} / I_{\mathrm{B}}\)</span>:</p>
+<ul>
+<li><p><strong>Typical brightness</strong> (<span class="math inline">\(I_{\mathrm{seg}} \approx 4.38\,\mathrm{mA}\)</span>): &nbsp; <span class="math inline">\(I_{\mathrm{C}} \approx 30.6\,\mathrm{mA}\)</span>, &nbsp; <span class="math inline">\(\beta_{\mathrm{forced}} \approx 12.5\text{–}15\)</span>.</p></li>
+<li><p><strong>Conservative brightness</strong> (<span class="math inline">\(I_{\mathrm{seg}} \approx 2.71\,\mathrm{mA}\)</span>): &nbsp; <span class="math inline">\(I_{\mathrm{C}} \approx 19.0\,\mathrm{mA}\)</span>, &nbsp; <span class="math inline">\(\beta_{\mathrm{forced}} \approx 7.8\text{–}9.3\)</span>.</p></li>
+</ul>
+<p>These values are suitable for saturating a 2N3906 in this current range.</p>
+</section>
+</section>
+<section id="technical-documentation" class="level2">
+<h2 class="anchored" data-anchor-id="technical-documentation">Technical Documentation</h2>
+<ul>
+<li><strong>Code directory (this lab):</strong>
+<ul>
+<li><code>top.sv</code> — top level (HSOSC @ 6 MHz, Dmux, SevenSeg, Sum LEDs)</li>
+<li><code>Dmux.sv</code> — divider + input select + digit enables</li>
+<li><code>SevenSeg.sv</code> — hex→7‑segment decoder (active‑LOW)</li>
+<li><code>*_tb.sv</code> — basic testbenches (<code>SevenSeg_tb.sv</code>, <code>Dmux_tb.sv</code>, <code>top_tb.sv</code>)</li>
+</ul></li>
+<li><strong>Tools:</strong> Radiant (synthesis, constraints, Netlist Analyzer), QuestaSim Lattice Edition (simulation).</li>
+</ul>
+<section id="notes-that-matter-for-this-lab" class="level3">
+<h3 class="anchored" data-anchor-id="notes-that-matter-for-this-lab">Notes that matter for this lab</h3>
+<ul>
+<li><strong>Active‑LOW segments.</strong> Common‑anode means driving a <code>0</code> turns a segment <strong>ON</strong>. Keep all case patterns consistent with this polarity.</li>
+<li><strong>One decoder only.</strong> Both digits share the same decoder → <strong>time‑multiplex</strong> inputs and enables.</li>
+<li><strong>Brightness uniformity.</strong> Identical per‑segment resistors and a fixed 50% duty for each digit keep perceived brightness similar across numbers.</li>
+<li><strong>Scan rate.</strong> If you observe flicker or “ghosting,” increase <span class="math inline">\(f_{\text{scan}}\)</span> (reduce <code>N</code>).</li>
+</ul>
+</section>
+</section>
+<section id="results-discussion" class="level2">
+<h2 class="anchored" data-anchor-id="results-discussion">Results &amp; Discussion</h2>
+<ul>
+<li>The decoder produced the correct segment patterns for <strong>0x0–0xF</strong> in simulation and on the physical board. The summing LED’s also followed the expected behavior.<br>
+</li>
+<li>At (N=60,000) (≈50 Hz scan), both digits are readable, with no visible flicker present.</li>
+<li>The 5‑bit <code>Sum</code> LEDs matched <code>Sw1 + Sw2</code> for all 256 input pairs in the top‑level test.</li>
+</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>I met the Lab 2 requirements: a <strong>single</strong> seven‑segment decoder time‑multiplexed across <strong>two</strong> digits, the <strong>sum</strong> on five LEDs, and current‑safe driving using PNP anode switches with per‑segment resistors. The design is modular (<code>Dmux</code>, <code>SevenSeg</code>, <code>top</code>) and synthesizes cleanly.</p>
+<p><strong>Time spent:</strong> (8) hours.</p>
+<hr>
+</section>
+<section id="ai-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="ai-implementation">AI Implementation</h2>
+<section id="prompt-used" class="level3">
+<h3 class="anchored" data-anchor-id="prompt-used">Prompt used</h3>
+<blockquote class="blockquote">
+<p>Write SystemVerilog HDL to time multiplex a single seven segment decoder (that decodes from four bits to a common anode seven segment display) to decode two sets of input bits and drive two sets of seven output bits. Use the seven segment decoder and oscillator provided in the attached files.</p>
+</blockquote>
+</section>
+<section id="what-the-llm-produced" class="level3">
+<h3 class="anchored" data-anchor-id="what-the-llm-produced">What the LLM produced</h3>
+<ul>
+<li><strong>Good ideas it used</strong>
+<ul>
+<li>Kept <strong>one</strong> hex→7-segment decoder and <strong>time-multiplexed</strong> the inputs (correct per spec).</li>
+<li>Added a <strong>parameterized scan divider</strong> with <code>$clog2</code> sizing and a clean <code>always_ff</code> counter.</li>
+<li>Split the design into clear modules: a scan/mux block (selects nibble + digit enables) and the existing decoder.</li>
+<li>Used <code>always_comb</code> for pure combinational logic and documented <strong>active-LOW</strong> segment polarity (common-anode).</li>
+<li>Suggested a sim mode with a <strong>tiny divider</strong> under <code>ifndef SYNTHESIS</code> to speed testbenches.</li>
+</ul></li>
+<li><strong>Gaps I had to fix</strong>
+<ul>
+<li>The first draft <strong>instantiated the decoder twice</strong> (one per digit). I rewired to feed a <strong>single</strong> decoder with the selected nibble.</li>
+<li>Digit enable polarity was backward for a <strong>PNP high-side</strong> scheme; I inverted the enables so only one anode is ON at a time.</li>
+</ul></li>
+</ul>
+</section>
+<section id="quality-rating-and-why" class="level3">
+<h3 class="anchored" data-anchor-id="quality-rating-and-why">Quality rating (and why)</h3>
+<ul>
+<li><strong>Rating: B+</strong></li>
+<li><strong>Why:</strong> Architecture and modularity were solid, scan logic was close to correct, and it respected the “single decoder” objective after edits. Minor polarity mistakes and a comment/math mismatch kept it from an A.</li>
+</ul>
+</section>
+<section id="did-it-synthesize-first-time" class="level3">
+<h3 class="anchored" data-anchor-id="did-it-synthesize-first-time">Did it synthesize first time?</h3>
+<ul>
+<li><strong>Not exactly.</strong> With the <strong>provided oscillator and decoder</strong>, it built after two small fixes:
+<ol type="1">
+<li>Removed the <strong>duplicate decoder</strong> instance and fed the single instance from the scan mux.<br>
+</li>
+<li>Flipped digit-enable polarity to match the <strong>common-anode via PNP</strong> wiring.</li>
+</ol></li>
+</ul>
+</section>
+<section id="what-id-do-differently-next-time-with-an-llm" class="level3">
+<h3 class="anchored" data-anchor-id="what-id-do-differently-next-time-with-an-llm">What I’d do differently next time with an LLM</h3>
+<ol type="1">
+<li><strong>Pin down polarity &amp; wiring in the prompt</strong>: “common-anode, active-LOW segments, PNP digit enables, single decoder” to avoid the duplicate-decoder and enable-polarity missteps.<br>
+</li>
+<li><strong>Specify the exact primitives</strong> up front: “use the <strong>provided</strong> HSOSC and SegDisp modules by name” to prevent library/primitive swaps.</li>
+</ol>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
