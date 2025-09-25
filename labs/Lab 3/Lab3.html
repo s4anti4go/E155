@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Santiago Burgos-Fallon">
-<meta name="dcterms.date" content="2025-09-11">
-<meta name="description" content="Designed a circuit interface to read a matrix keypad on an FPGA">
+<meta name="dcterms.date" content="2025-09-17">
+<meta name="description" content="4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output">
 
 <title>Lab 3: Keypad Scanner – E155 Portfolio</title>
 <style>
@@ -72,6 +72,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -122,8 +151,61 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#system-overview" id="toc-system-overview" class="nav-link" data-scroll-target="#system-overview">System Overview</a>
+  <ul class="collapse">
+  <li><a href="#block-diagram" id="toc-block-diagram" class="nav-link" data-scroll-target="#block-diagram">Block Diagram</a></li>
+  <li><a href="#top-level-architecture" id="toc-top-level-architecture" class="nav-link" data-scroll-target="#top-level-architecture">Top-Level Architecture</a></li>
+  </ul></li>
+  <li><a href="#state-machine-specification" id="toc-state-machine-specification" class="nav-link" data-scroll-target="#state-machine-specification">State Machine Specification</a>
+  <ul class="collapse">
+  <li><a href="#state-diagram" id="toc-state-diagram" class="nav-link" data-scroll-target="#state-diagram">State Diagram</a></li>
+  </ul></li>
+  <li><a href="#state-transition-table" id="toc-state-transition-table" class="nav-link" data-scroll-target="#state-transition-table">State Transition Table</a>
+  <ul class="collapse">
+  <li><a href="#idle-transitions" id="toc-idle-transitions" class="nav-link" data-scroll-target="#idle-transitions">IDLE – transitions</a></li>
+  <li><a href="#deb-transitions" id="toc-deb-transitions" class="nav-link" data-scroll-target="#deb-transitions">DEB – transitions</a></li>
+  <li><a href="#held-transitions" id="toc-held-transitions" class="nav-link" data-scroll-target="#held-transitions">HELD – transitions</a></li>
+  <li><a href="#outputs-actions-per-state" id="toc-outputs-actions-per-state" class="nav-link" data-scroll-target="#outputs-actions-per-state">Outputs &amp; Actions (per state)</a></li>
+  <li><a href="#one-liners-for-implementation-cross-check" id="toc-one-liners-for-implementation-cross-check" class="nav-link" data-scroll-target="#one-liners-for-implementation-cross-check">One-liners for implementation cross-check</a></li>
+  </ul></li>
+  <li><a href="#debouncing-metastability" id="toc-debouncing-metastability" class="nav-link" data-scroll-target="#debouncing-metastability">Debouncing &amp; Metastability</a></li>
+  <li><a href="#timing-multiplexing" id="toc-timing-multiplexing" class="nav-link" data-scroll-target="#timing-multiplexing">Timing &amp; Multiplexing</a>
+  <ul class="collapse">
+  <li><a href="#scan-timing" id="toc-scan-timing" class="nav-link" data-scroll-target="#scan-timing">Scan Timing</a></li>
+  <li><a href="#display-timing-dmux" id="toc-display-timing-dmux" class="nav-link" data-scroll-target="#display-timing-dmux">Display Timing (<code>DMux</code>)</a></li>
+  </ul></li>
+  <li><a href="#pinout-orientation" id="toc-pinout-orientation" class="nav-link" data-scroll-target="#pinout-orientation">Pinout &amp; Orientation</a></li>
+  <li><a href="#hdl-summary-files-roles" id="toc-hdl-summary-files-roles" class="nav-link" data-scroll-target="#hdl-summary-files-roles">HDL Summary (files &amp; roles)</a></li>
+  <li><a href="#simulation-verification" id="toc-simulation-verification" class="nav-link" data-scroll-target="#simulation-verification">Simulation &amp; Verification</a>
+  <ul class="collapse">
+  <li><a href="#testbench-strategy" id="toc-testbench-strategy" class="nav-link" data-scroll-target="#testbench-strategy">Testbench Strategy</a></li>
+  <li><a href="#results-simulation" id="toc-results-simulation" class="nav-link" data-scroll-target="#results-simulation">Results (simulation)</a></li>
+  </ul></li>
+  <li><a href="#hardware-bring-up-measurements" id="toc-hardware-bring-up-measurements" class="nav-link" data-scroll-target="#hardware-bring-up-measurements">Hardware Bring-Up &amp; Measurements</a></li>
+  <li><a href="#design-tradeoffs-alternatives" id="toc-design-tradeoffs-alternatives" class="nav-link" data-scroll-target="#design-tradeoffs-alternatives">Design Tradeoffs &amp; Alternatives</a></li>
+  <li><a href="#schematic-notes" id="toc-schematic-notes" class="nav-link" data-scroll-target="#schematic-notes">Schematic Notes</a></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
+  <li><a href="#appendix" id="toc-appendix" class="nav-link" data-scroll-target="#appendix">Appendix</a>
+  <ul class="collapse">
+  <li><a href="#file-list" id="toc-file-list" class="nav-link" data-scroll-target="#file-list">File List</a></li>
+  <li><a href="#key-equations" id="toc-key-equations" class="nav-link" data-scroll-target="#key-equations">Key Equations</a></li>
+  </ul></li>
+  <li><a href="#ai-implementation" id="toc-ai-implementation" class="nav-link" data-scroll-target="#ai-implementation">AI Implementation</a>
+  <ul class="collapse">
+  <li><a href="#prompt-used" id="toc-prompt-used" class="nav-link" data-scroll-target="#prompt-used">Prompt used</a></li>
+  <li><a href="#what-the-llm-produced" id="toc-what-the-llm-produced" class="nav-link" data-scroll-target="#what-the-llm-produced">What the LLM produced</a></li>
+  <li><a href="#quality-rating-and-why" id="toc-quality-rating-and-why" class="nav-link" data-scroll-target="#quality-rating-and-why">Quality rating (and why)</a></li>
+  <li><a href="#did-it-synthesize-first-time" id="toc-did-it-synthesize-first-time" class="nav-link" data-scroll-target="#did-it-synthesize-first-time">Did it synthesize first time?</a></li>
+  <li><a href="#what-id-do-differently-next-time-with-an-llm" id="toc-what-id-do-differently-next-time-with-an-llm" class="nav-link" data-scroll-target="#what-id-do-differently-next-time-with-an-llm">What I’d do differently next time with an LLM</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -138,7 +220,7 @@ ul.task-list li input[type="checkbox"] {
 
 <div>
   <div class="description">
-    Designed a circuit interface to read a matrix keypad on an FPGA
+    4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output
   </div>
 </div>
 
@@ -155,7 +237,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 11, 2025</p>
+      <p class="date">September 17, 2025</p>
     </div>
   </div>
   
@@ -167,8 +249,476 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab I designed and verified a <strong>4×4 matrix keypad scanner</strong> on an iCE40 FPGA. The design <strong>registers each key exactly once</strong> (on press), <strong>filters bounce</strong>, <strong>ignores additional keys while one is held</strong>, and <strong>displays the last two hex digits</strong> on a dual common-anode seven-segment display (most recent on the <strong>right</strong>). The keypad orientation is aligned with the display.</p>
+<p><br>
+<strong>Display polarity.</strong> Common-anode → <code>Seg[6:0]</code> are <strong>active-LOW</strong> and digit enables select which anode is active.<br>
+</p>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">System Overview</h2>
+<section id="block-diagram" class="level3">
+<h3 class="anchored" data-anchor-id="block-diagram">Block Diagram</h3>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="top level muxed design.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/BD.jpg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="top level muxed design.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Block diagram.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="top-level-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="top-level-architecture">Top-Level Architecture</h3>
+<ul>
+<li><p><strong>Clocking:</strong> Lattice <code>HSOSC</code> at ~<strong>6 MHz</strong> (<code>CLKHF_DIV=2'b11</code>).</p></li>
+<li><p><strong>Keypad interface:</strong></p>
+<ul>
+<li><strong>Rows</strong> (<code>Row[3:0]</code>) are <strong>FPGA outputs</strong>, one row driven <strong>LOW</strong> at a time (scan).</li>
+<li><strong>Columns</strong> (<code>Col[3:0]</code>) are <strong>FPGA inputs</strong> with <strong>pull-ups</strong> (<code>PULLMODE=UP</code>). A pressed key shorts the active low row to its column → that column reads <code>0</code>.</li>
+</ul></li>
+<li><p><strong>Scanner (<code>KeypadScan</code>):</strong></p>
+<ul>
+<li><p><strong>Round-robin row scan</strong> (≈2 kHz), <strong>2-FF synchronizers</strong> on <code>Col[3:0]</code>.</p></li>
+<li><p><strong>FSM</strong> with states <strong>IDLE → DEB → HELD</strong>.</p>
+<ul>
+<li>On first detection, freeze the candidate row/col and <strong>debounce</strong> for a few scan ticks.</li>
+<li>Emit a <strong>1-cycle <code>key_valid</code></strong> on acceptance, then <strong>ignore</strong> other keys until <strong>all columns return high</strong>.</li>
+</ul></li>
+</ul></li>
+<li><p><strong>Display path:</strong> On <code>key_valid</code>, shift <code>{D_left, D_right} ← {D_right, key_code}</code>. A single <code>SevenSeg</code> instance decodes the selected nibble; <code>DMux</code> alternates enables (<code>En1</code>, <code>En2</code>) and feeds the decoder input (<code>s</code>) at a fixed duty to avoid brightness variation.</p></li>
+</ul>
+<div id="fig-RTL" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Netlist of design">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-RTL-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/rtl.png" class="img-fluid figure-img" alt="Netlist of design">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-RTL-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: RTL
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="state-machine-specification" class="level2">
+<h2 class="anchored" data-anchor-id="state-machine-specification">State Machine Specification</h2>
+<section id="state-diagram" class="level3">
+<h3 class="anchored" data-anchor-id="state-diagram">State Diagram</h3>
+<div id="fig-FSM" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Debounce FSM">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-FSM-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/FSM.jpg" class="img-fluid figure-img" alt="Debounce FSM">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-FSM-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: FSM
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="state-transition-table" class="level2">
+<h2 class="anchored" data-anchor-id="state-transition-table">State Transition Table</h2>
+<section id="idle-transitions" class="level3">
+<h3 class="anchored" data-anchor-id="idle-transitions">IDLE – transitions</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 38%">
+<col style="width: 6%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Current State</th>
+<th>Condition (plain English)</th>
+<th style="text-align: right;">Next State</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>IDLE</strong></td>
+<td>A key seems pressed (while scanning, some column reads LOW)</td>
+<td style="text-align: right;"><strong>DEB</strong></td>
+<td>Latch the <em>candidate key</em> = (active row, first LOW column); compute hex</td>
+</tr>
+<tr class="even">
+<td><strong>IDLE</strong></td>
+<td>Otherwise</td>
+<td style="text-align: right;"><strong>IDLE</strong></td>
+<td>Continue round-robin row scan</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="deb-transitions" class="level3">
+<h3 class="anchored" data-anchor-id="deb-transitions">DEB – transitions</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 5%">
+<col style="width: 61%">
+<col style="width: 4%">
+<col style="width: 27%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Current State</th>
+<th>Condition (plain English)</th>
+<th style="text-align: right;">Next State</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>DEB</strong></td>
+<td>All columns are HIGH again (looks like release or a glitch)</td>
+<td style="text-align: right;"><strong>IDLE</strong></td>
+<td>Abort debounce; resume scanning</td>
+</tr>
+<tr class="even">
+<td><strong>DEB</strong></td>
+<td>On the scan strobe, the <strong>same candidate column</strong> is still LOW <strong>and</strong> the <strong>stable count just reached the target</strong> (e.g., 3 in a row)</td>
+<td style="text-align: right;"><strong>HELD</strong></td>
+<td>Accept the key; emit a one-clock <code>key_valid</code> pulse</td>
+</tr>
+<tr class="odd">
+<td><strong>DEB</strong></td>
+<td>On the scan strobe, the same candidate column is still LOW <strong>but</strong> the <strong>stable count hasn’t reached the target</strong></td>
+<td style="text-align: right;"><strong>DEB</strong></td>
+<td>Keep counting consecutive stable observations</td>
+</tr>
+<tr class="even">
+<td><strong>DEB</strong></td>
+<td>On the scan strobe, the candidate column is <strong>not</strong> LOW</td>
+<td style="text-align: right;"><strong>DEB</strong></td>
+<td>Reset the stable counter to zero</td>
+</tr>
+<tr class="odd">
+<td><strong>DEB</strong></td>
+<td>Otherwise</td>
+<td style="text-align: right;"><strong>DEB</strong></td>
+<td>Keep the candidate row held LOW and wait for next scan strobe</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="held-transitions" class="level3">
+<h3 class="anchored" data-anchor-id="held-transitions">HELD – transitions</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 45%">
+<col style="width: 8%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Current State</th>
+<th>Condition (plain English)</th>
+<th style="text-align: right;">Next State</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>HELD</strong></td>
+<td>All columns are HIGH (the key has been fully released)</td>
+<td style="text-align: right;"><strong>IDLE</strong></td>
+<td>Return to scanning; allow a new key</td>
+</tr>
+<tr class="even">
+<td><strong>HELD</strong></td>
+<td>Otherwise (key still held, or other keys also pressed)</td>
+<td style="text-align: right;"><strong>HELD</strong></td>
+<td>Ignore additional keys until full release</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="outputs-actions-per-state" class="level3">
+<h3 class="anchored" data-anchor-id="outputs-actions-per-state">Outputs &amp; Actions (per state)</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 3%">
+<col style="width: 25%">
+<col style="width: 44%">
+<col style="width: 27%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>State</th>
+<th>Row Drive (what we drive on the keypad)</th>
+<th>Registers / Counters (what we latch/update)</th>
+<th>One-Cycle Outputs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>IDLE</strong></td>
+<td>Round-robin: one row LOW at a time (<code>…1110 → 1101 → 1011 → 0111…</code>)</td>
+<td>On first LOW column: <strong>latch candidate row &amp; column</strong>, compute and hold <strong>candidate hex</strong>, <strong>clear</strong> stable counter</td>
+<td><code>key_valid = 0</code></td>
+</tr>
+<tr class="even">
+<td><strong>DEB</strong></td>
+<td><strong>Freeze</strong>: keep only the candidate row LOW</td>
+<td>On each scan strobe: if same column still LOW → <strong>increment</strong> stable counter; else <strong>reset</strong> to 0</td>
+<td>When target count reached on a strobe: <strong><code>key_valid = 1</code> (one clock)</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>HELD</strong></td>
+<td><strong>Freeze</strong>: keep only the candidate row LOW</td>
+<td>Wait until <strong>all columns HIGH</strong> (full release); counters unchanged</td>
+<td><code>key_valid = 0</code></td>
+</tr>
+</tbody>
+</table>
+<section id="mini-glossary-for-the-table" class="level4">
+<h4 class="anchored" data-anchor-id="mini-glossary-for-the-table">Mini-glossary (for the table)</h4>
+<ul>
+<li><strong>Scan strobe</strong>: periodic tick that advances row scan and paces debouncing.</li>
+<li><strong>Candidate key</strong>: first detected (row, column) pair; row is held during debounce.</li>
+<li><strong>Stable count</strong>: number of <strong>consecutive</strong> scan strobes where that same column remains LOW (target e.g.&nbsp;<strong>3</strong>).</li>
+<li><strong>All columns HIGH</strong>: no key asserted (<code>1111</code> due to pull-ups).</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="one-liners-for-implementation-cross-check" class="level3">
+<h3 class="anchored" data-anchor-id="one-liners-for-implementation-cross-check">One-liners for implementation cross-check</h3>
+<ul>
+<li><strong>Accept press</strong> when: <code>state==DEB &amp;&amp; scan_tick &amp;&amp; stable_cand &amp;&amp; deb_cnt==N_stable-1</code> → <code>key_valid&lt;=1</code>, <code>state&lt;=HELD</code>.</li>
+<li><strong>Abort bounce</strong> when: <code>state==DEB &amp;&amp; all_released</code> → <code>deb_cnt&lt;=0</code>, <code>state&lt;=IDLE</code>.</li>
+<li><strong>Ignore additional keys</strong> while <strong>HELD</strong>: do nothing until <code>all_released</code>.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="debouncing-metastability" class="level2">
+<h2 class="anchored" data-anchor-id="debouncing-metastability">Debouncing &amp; Metastability</h2>
+<ul>
+<li><strong>Synchronizers:</strong> Each <code>Col[x]</code> passes through a <strong>two-flip-flop</strong> chain (<code>col_s1 → col_sync</code>) clocked at 6 MHz to mitigate metastability.</li>
+<li><strong>Debounce window:</strong> Acceptance requires <strong>three</strong> stable observations of the candidate column under a <strong>frozen row</strong>. This balances responsiveness and immunity to mechanical bounce.</li>
+<li><strong>Single-event guarantee:</strong> <code>key_valid</code> is generated <strong>once</strong>, on the <strong>press</strong> edge only. While in <strong>HELD</strong>, new presses are <strong>ignored</strong> until release.</li>
+</ul>
+</section>
+<section id="timing-multiplexing" class="level2">
+<h2 class="anchored" data-anchor-id="timing-multiplexing">Timing &amp; Multiplexing</h2>
+<section id="scan-timing" class="level3">
+<h3 class="anchored" data-anchor-id="scan-timing">Scan Timing</h3>
+<p>A 13-bit divider creates a ~<strong>2 kHz</strong> scan tick. Rows step: <code>1110 → 1101 → 1011 → 0111</code>. The debounce counter advances only on scan ticks. Timing can be seen on top Module Wave form.</p>
+</section>
+<section id="display-timing-dmux" class="level3">
+<h3 class="anchored" data-anchor-id="display-timing-dmux">Display Timing (<code>DMux</code>)</h3>
+<p><code>DMux</code> toggles a digit select at ~<strong>50 Hz</strong> (counter=60 000 at 6 MHz → 50 Hz).</p>
+<ul>
+<li><code>s = (DivClk) ? D_right : D_left</code></li>
+<li><code>En2 = DivClk</code>, <code>En1 = ~DivClk</code></li>
+<li>Constant duty keeps <strong>brightness uniform</strong>, independent of the number of lit segments.</li>
+</ul>
+<p>Timing can be seen on top Module Wave form.</p>
+</section>
+</section>
+<section id="pinout-orientation" class="level2">
+<h2 class="anchored" data-anchor-id="pinout-orientation">Pinout &amp; Orientation</h2>
+<ul>
+<li><strong>Rows (outputs):</strong> connect to keypad <strong>R0..R3</strong>.</li>
+<li><strong>Columns (inputs w/ pull-up):</strong> connect to keypad <strong>C0..C3</strong>.</li>
+<li>The <strong>map_hex</strong> table encodes the keypad legend for <code>(row, col)</code> indices consistent with the chosen orientation.</li>
+</ul>
+<div id="fig-Schematic" class="quarto-float quarto-figure quarto-figure-center anchored" alt="Schematic with Pinouts">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-Schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/GenSchem.jpg" class="img-fluid figure-img" alt="Schematic with Pinouts">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-Schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Layout Schematic
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="hdl-summary-files-roles" class="level2">
+<h2 class="anchored" data-anchor-id="hdl-summary-files-roles">HDL Summary (files &amp; roles)</h2>
+<ul>
+<li><code>top.sv</code> — HSOSC, <code>KeypadScan</code>, capture registers for last two digits, <code>DMux</code>, <code>SevenSeg</code>.</li>
+<li><code>KeypadScan.sv</code> — row scan, 2-FF input sync, <strong>IDLE/DEB/HELD</strong> FSM, <code>map_hex(r,c)</code>.</li>
+<li><code>DMux.sv</code> — display multiplexer + digit enables (fixed duty).</li>
+<li><code>SevenSeg.sv</code> — combinational hex→segments (active-LOW).</li>
+</ul>
+<p>All combinational logic is in <code>always_comb</code>; sequential is in <code>always_ff</code> with a single driver per <code>reg</code> (no latches, no tri-states).</p>
+</section>
+<section id="simulation-verification" class="level2">
+<h2 class="anchored" data-anchor-id="simulation-verification">Simulation &amp; Verification</h2>
+<section id="testbench-strategy" class="level3">
+<h3 class="anchored" data-anchor-id="testbench-strategy">Testbench Strategy</h3>
+<ul>
+<li><p>A <strong>behavioral keypad model</strong> drives <code>Col[3:0]</code> LOW <strong>only</strong> when the DUT selects the matching row LOW.</p></li>
+<li><p>The TB issues a sequence of 16 keys (walks the matrix), waits for <code>key_valid</code>, and then checks the <strong>two displayed digits</strong> by sampling when each enable is active.</p></li>
+<li><p>Negative tests:</p>
+<ul>
+<li>Hold one key, “press” another → verify the <strong>second is ignored</strong> until release.</li>
+<li>Inject brief bounces on a column line → ensure <strong>single</strong> registration.</li>
+</ul></li>
+</ul>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="top level muxed design.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/waves.png" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="top level muxed design.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Keypad Scan, Dmux, and Top waveforms.
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-top-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="16 tests, 1 error due to X-expectation vector.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-top-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/Output.png" class="img-fluid figure-img" alt="16 tests, 1 error due to X-expectation vector.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-top-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: waveform transcript (1 expected X-case mismatch at vec 0).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="results-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="results-simulation">Results (simulation)</h3>
+<ul>
+<li>Each programmed key press produced <strong>one</strong> <code>key_valid</code> pulse and the expected <code>key_code</code>.</li>
+<li>With one key held, additional simulated presses did <strong>not</strong> register.</li>
+<li>Display sampling showed stable, non-flickering output; both digits had equal duty.</li>
+</ul>
+</section>
+</section>
+<section id="hardware-bring-up-measurements" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-bring-up-measurements">Hardware Bring-Up &amp; Measurements</h2>
+<ul>
+<li>Verified with a multimeter that each button shorts exactly one <strong>Row</strong> to one <strong>Col</strong> (&lt;100 Ω) and that <code>Col</code> idles at <code>1111</code> with no key (internal pull-ups).</li>
+<li>Confirmed row order and column order match the <strong><code>map_hex</code></strong> orientation by observing a temporary LED debug (<code>~Row</code>, <code>~Col</code>) and adjusting constraints where needed.</li>
+<li>Final board test: pressing any key updates the right digit; the previous right digit shifts to the left. Press-and-hold does not cause repeats; additional presses are ignored until release.</li>
+</ul>
+</section>
+<section id="design-tradeoffs-alternatives" class="level2">
+<h2 class="anchored" data-anchor-id="design-tradeoffs-alternatives">Design Tradeoffs &amp; Alternatives</h2>
+<ul>
+<li><strong>Debounce length:</strong> I chose <strong>3 scan-ticks</strong> (≈1.5 ms at ~2 kHz) for a good balance of responsiveness vs.&nbsp;bounce immunity. Longer windows reduce false triggers but feel less snappy.</li>
+<li><strong>Scan rate:</strong> ~2 kHz row stepping comfortably exceeds bounce dynamics and avoids aliasing; slower scanning risks missing very short taps.</li>
+<li><strong>Single decoder + mux:</strong> Minimizes area and guarantees identical glyphs; the tradeoff is a need for careful duty control to keep brightness uniform.</li>
+<li><strong>First-press policy vs.&nbsp;NKRO:</strong> For a diode-less matrix, “first-press wins” avoids ghosting; true multi-key (NKRO) would require per-switch diodes or a more complex detection + ghost-masking strategy.</li>
+<li><strong>Synchronizers:</strong> 2-FF is sufficient at 6 MHz; 3-FF would further reduce MTBF at the cost of extra latency.</li>
+</ul>
+</section>
+<section id="schematic-notes" class="level2">
+<h2 class="anchored" data-anchor-id="schematic-notes">Schematic Notes</h2>
+<ul>
+<li><strong>Columns:</strong> inputs with <strong>PULLMODE=UP</strong></li>
+<li><strong>Rows:</strong> push-pull outputs; <strong>one driven LOW</strong> at a time.</li>
+<li><strong>Display:</strong> common-anode; segment resistors per segment; enables at constant duty.</li>
+</ul>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>The implemented keypad scanner <strong>meets the lab requirements</strong>:</p>
+<ul>
+<li>Correctly reads the 4×4 keypad, <strong>debounces</strong>, and <strong>registers once per press</strong>.</li>
+<li><strong>Ignores</strong> additional keys while one is held.</li>
+<li>Drives the dual 7-segment display with <strong>stable brightness</strong> and correct ordering (most-recent on <strong>right</strong>).</li>
+<li>Uses clean, latch-free, tri-state-free RTL with proper <strong>synchronizers</strong>.</li>
+</ul>
+<p><strong>Time spent:</strong> <em>(12 hours)</em>. <strong>Known limitations / future work:</strong></p>
+<ul>
+<li>Add a compile-time option to speed the scan/dividers in simulation.</li>
+<li>Auto-detect row/col orientation at power-up to reduce pin-map bring-up friction.</li>
+</ul>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<section id="file-list" class="level3">
+<h3 class="anchored" data-anchor-id="file-list">File List</h3>
+<pre><code>top.sv
+KeypadScan.sv
+DMux.sv
+SevenSeg.sv
+hsosc_sim.sv   // simulation model only
+*_tb.sv        // keypad + display testbenches</code></pre>
+</section>
+<section id="key-equations" class="level3">
+<h3 class="anchored" data-anchor-id="key-equations">Key Equations</h3>
+<ul>
+<li><strong>Display scan:</strong> <span class="math inline">\(f_{\text{scan}} = \dfrac{f_{\text{clk}}}{2N}\)</span> (N = <code>DMux</code> terminal count).</li>
+<li><strong>Debounce window:</strong> <span class="math inline">\(T_{\text{deb}} = N_{\text{stable}} / f_{\text{row-scan}}\)</span>.</li>
+</ul>
+</section>
+</section>
+<section id="ai-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="ai-implementation">AI Implementation</h2>
+<section id="prompt-used" class="level3">
+<h3 class="anchored" data-anchor-id="prompt-used">Prompt used</h3>
+<blockquote class="blockquote">
+<p><strong>Target device:</strong> Lattice iCE40 UP5K FPGA with internal high-speed oscillator (~20 MHz).</p>
+<p>Write synthesizable SystemVerilog to scan a 4×4 matrix keypad and display the last two hex keys pressed on a dual 7-segment display. Implement: • A clock divider that derives a scan clock on the order of 100–200 Hz from the internal oscillator. • A keypad scanning controller that iterates one active-low column at a time and samples active-low rows, registering at most one key per press (debounce-by-design), ignoring additional presses while any key is held, and allowing a new registration only after release. • A top level that updates two hex digits (older and most recent) when a new key is registered and drives a time-multiplexed two-digit 7-segment display without visible flicker and with balanced brightness. Use idiomatic SystemVerilog (e.g., <code>logic</code>, <code>always_ff</code>, enumerated states for FSMs). Provide clean module boundaries and keep all state synchronous. Include brief comments explaining the design choices. Create a new Radiant project, type the code generated by the LLM in and analyze the results. If the synthesis fails, type the error message back into the LLM to see what suggestions it generates.</p>
+</blockquote>
+</section>
+<section id="what-the-llm-produced" class="level3">
+<h3 class="anchored" data-anchor-id="what-the-llm-produced">What the LLM produced</h3>
+<ul>
+<li><p><strong>Good ideas it used</strong></p>
+<ul>
+<li>Clear <strong>module split</strong>: <code>KeypadScan</code> (scanner + debounce FSM), <code>DMux</code> (digit scan/mux), <code>SevenSeg</code> (combinational hex→segments), <code>top</code> (capture two digits, wire-up).</li>
+<li><strong>Synchronous FSM</strong> with three states (<strong>IDLE → DEB → HELD</strong>), a <strong>one-shot</strong> <code>key_valid</code> pulse on accept, and <strong>two-flip-flop synchronizers</strong> on the asynchronous column inputs.</li>
+<li><strong>Round-robin row drive</strong> and <strong>frozen row during debounce</strong>, which prevents ghosting and enforces “first press wins.”</li>
+<li><strong>Time-multiplexed display</strong> with fixed duty for <strong>uniform brightness</strong>, and active-LOW segment patterns for a common-anode display.</li>
+<li>Included a <strong>scan tick</strong> to pace debounce (stable-N policy), keeping all counters/sequencing in <code>always_ff</code> and decoding in <code>always_comb</code>.</li>
+</ul></li>
+<li><p><strong>Gaps I had to fix</strong></p>
+<ul>
+<li><strong>Row/column polarity &amp; direction</strong>: the prompt assumed <em>active-low columns</em> and <em>sampled rows</em>, but our board drives <strong>rows (active-LOW)</strong> and reads <strong>columns (with pull-ups)</strong>. I corrected the interface and comments to match hardware.</li>
+<li><strong>Key mapping</strong>: the default <code>(row,col)→hex</code> map didn’t match the physical keypad legend; I rewrote <code>map_hex</code> to our layout.</li>
+<li><strong>Multiple drivers risk</strong>: <code>key_valid</code> was assigned in more than one procedural context in one draft. I consolidated to a <strong>single</strong> <code>always_ff</code>.</li>
+<li><strong>Debounce edge case</strong>: the counter was clocked every system cycle; I tied it to the <strong>scan strobe</strong> so stability is measured per row sample.</li>
+<li><strong>Simulation speed</strong>: initial dividers made sims painfully long; I added small counts under a guarded <strong>sim mode</strong> while leaving hardware rates intact.</li>
+</ul></li>
+</ul>
+</section>
+<section id="quality-rating-and-why" class="level3">
+<h3 class="anchored" data-anchor-id="quality-rating-and-why">Quality rating (and why)</h3>
+<ul>
+<li><strong>Rating: A-</strong></li>
+<li><strong>Why:</strong> The LLM delivered a solid modular architecture and a correct synchronous FSM with proper input synchronization and single-event registration. Most fixes were <strong>integration details</strong> (board polarity, key legend, divider sizing) rather than structural rewrites.</li>
+</ul>
+</section>
+<section id="did-it-synthesize-first-time" class="level3">
+<h3 class="anchored" data-anchor-id="did-it-synthesize-first-time">Did it synthesize first time?</h3>
+<ul>
+<li><p><strong>Almost.</strong> It compiled after minor edits:</p>
+<ol type="1">
+<li>Align row/column <strong>direction and polarity</strong> with our board.</li>
+<li>Fix a <strong>single-writer</strong> rule on <code>key_valid</code>.</li>
+<li>Adjust the <code>(row,col)→hex</code> <strong>lookup</strong> to the actual keypad legend.</li>
+<li>Tweak divider constants (fast for sim, slow for hardware) and confirm <strong>no latches/tri-states</strong>.</li>
+</ol></li>
+</ul>
+</section>
+<section id="what-id-do-differently-next-time-with-an-llm" class="level3">
+<h3 class="anchored" data-anchor-id="what-id-do-differently-next-time-with-an-llm">What I’d do differently next time with an LLM</h3>
+<ol type="1">
+<li><strong>State the physical contract explicitly in the prompt:</strong> “Rows = outputs, active-LOW; Columns = inputs with pull-ups (idle=1111); Segments active-LOW; digit enables En1/En2 select left/right.”</li>
+<li><strong>Provide the keypad legend and pin swap up front</strong> and ask the model to generate <code>map_hex</code> from a small (row,col)→label table.</li>
+<li><strong>Ask for <code>+ifdef SIM</code> dividers</strong> from the start to keep waveforms short and readable.</li>
+<li><strong>Require one-process-per-reg</strong> and “no <code>$clog2</code>/parameters” if a strict style is desired, so the draft matches house style without edits.</li>
+</ol>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

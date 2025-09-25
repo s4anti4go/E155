@@ -18,7 +18,7 @@
     "href": "labs.html",
     "title": "Labs",
     "section": "",
-    "text": "Lab 7: The Advanced Encryption Standard\n\n\nA hardware accelerator to perform 128-bit AES encryption\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: The Internet of Things and Serial Peripheral Interface\n\n\nAn internet-accessible device to control an onboard LED and measure ambient temperature\n\n\n\n\n\nOct 2, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts\n\n\nUse MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts.\n\n\n\n\n\nSep 25, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio\n\n\nUse MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations\n\n\n\n\n\nSep 18, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\nDesigned a circuit interface to read a matrix keypad on an FPGA\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+    "text": "Lab 7: The Advanced Encryption Standard\n\n\nA hardware accelerator to perform 128-bit AES encryption\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: The Internet of Things and Serial Peripheral Interface\n\n\nAn internet-accessible device to control an onboard LED and measure ambient temperature\n\n\n\n\n\nOct 2, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts\n\n\nUse MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts.\n\n\n\n\n\nSep 25, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio\n\n\nUse MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations\n\n\n\n\n\nSep 18, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\n4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output\n\n\n\n\n\nSep 17, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "labs/Lab 2/Lab2.html",
@@ -131,6 +131,118 @@
     "title": "Lab 1: FPGA and MCU Setup and Testing",
     "section": "AI Implementation",
     "text": "AI Implementation\n\nPrompt\n\nWrite SystemVerilog HDL to leverage the internal high speed oscillator in the Lattice UP5K FPGA and blink an LED at 2 Hz. Take full advantage of SystemVerilog syntax, for example, using logic instead of wire and reg.\n\n\n\nWhat the LLM produced (Gemini)\nGood ideas it used: - Parameterized divider (CLK_FREQ, BLINK_FREQ) with $clog2 sizing - Modern SV constructs (logic, always_ff) - Clear split: top module that wraps an oscillator primitive + a blinker child\nTop-level snippet returned (abridged): module led_blink_top (output logic o_led); logic clk_48mhz; SB_HFOSC u_hfosc ( .CLKHFPU(1’b1), .CLKHFEN(1’b1), .CLKHF(clk_48mhz) ); defparam u_hfosc.CLKHF_DIV = “0b00”; // 48 MHz led_blinker u_led_blinker (.clk(clk_48mhz), .led(o_led)); endmodule\n\n\nSynthesis outcome\nRadiant failed at the oscillator instantiation with: VERI-1063: instantiating unknown module SB_HFOSC Root cause: Radiant’s iCE40 UltraPlus technology library expects the HSOSC primitive, not SB_HFOSC (the SB_* form is common in iCEcube2 examples).\nFix applied (works in Radiant): // iCE40UP internal HF oscillator HSOSC #(.CLKHF_DIV(2’b00)) // 00 = 48 MHz hf_osc (.CLKHFPU(1’b1), .CLKHFEN(1’b1), .CLKHF(clk));\nI also replaced the LLM’s initial-based register inits with a tiny synchronous power-on reset (POR) counter so hardware powers up in a known state.\n\n\nQuality rating (and why)\n\nRating: B\n\nStrengths: idiomatic SV, readable, correct divide-by-N math, parameterized for reuse\n\nWeak spots: vendor primitive mismatch (SB_HFOSC vs HSOSC), defparam string style (\"0b00\"), reliance on initial for synthesis reset\n\n\n\nWhat I learned / new constructs\n\n$clog2 is handy for auto-sizing counters and synthesizes cleanly on UP5K.\nParameterizing the blink frequency made switching between 2 Hz (prompt) and 2.4 Hz (lab) a one-line change.\n\n\n\nErrors & warnings encountered\n\nRadiant: VERI-1063 instantiating unknown module SB_HFOSC → resolved by switching to HSOSC #(.CLKHF_DIV(2'b00)) and wiring CLKHFPU/CLKHFEN/CLKHF.\n\n\n\nTips for using LLMs for HDL (next-time playbook)\n\nSpecify tool, family, and exact primitive in the prompt: target Lattice Radiant for iCE40 UltraPlus (UP5K) and instantiate HSOSC (ports CLKHFPU, CLKHFEN, CLKHF; param CLKHF_DIV).\nAsk for a synthesizable reset: avoid initial; include a synchronous reset or a small POR counter.\nRequest a sim-friendly testbench: faster divider + self-check to validate logic quickly.\nAsk for Radiant-specific guidance: prefer Device Constraint Editor notes over generic .lpf.\nIterate with exact error text: paste Radiant/Questa messages back to the LLM for precise fixes.\n\n\n\nAppendix: Figure index\n\nBlock diagram: hmc-e155-portfolio/labs/Lab1/images/sv.jpg\n\nSchematic & current calc: hmc-e155-portfolio/labs/Lab1/images/elec.jpg\n\nTop-level waves: hmc-e155-portfolio/labs/Lab1/images/lab test waves.png, hmc-e155-portfolio/labs/Lab1/images/lab vectors.png\n\nLED unit waves: hmc-e155-portfolio/labs/Lab1/images/led test waves.png, hmc-e155-portfolio/labs/Lab1/images/led text tests.png\n\nSeven-seg waves: hmc-e155-portfolio/labs/Lab1/images/seven seg waves.png, hmc-e155-portfolio/labs/Lab1/images/seven seg tests.png"
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html",
+    "href": "labs/Lab 3/Lab3.html",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "",
+    "text": "In this lab I designed and verified a 4×4 matrix keypad scanner on an iCE40 FPGA. The design registers each key exactly once (on press), filters bounce, ignores additional keys while one is held, and displays the last two hex digits on a dual common-anode seven-segment display (most recent on the right). The keypad orientation is aligned with the display.\n\nDisplay polarity. Common-anode → Seg[6:0] are active-LOW and digit enables select which anode is active."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#introduction",
+    "href": "labs/Lab 3/Lab3.html#introduction",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "",
+    "text": "In this lab I designed and verified a 4×4 matrix keypad scanner on an iCE40 FPGA. The design registers each key exactly once (on press), filters bounce, ignores additional keys while one is held, and displays the last two hex digits on a dual common-anode seven-segment display (most recent on the right). The keypad orientation is aligned with the display.\n\nDisplay polarity. Common-anode → Seg[6:0] are active-LOW and digit enables select which anode is active."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#system-overview",
+    "href": "labs/Lab 3/Lab3.html#system-overview",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "System Overview",
+    "text": "System Overview\n\nBlock Diagram\n\n\n\n\n\n\nFigure 1: Block diagram.\n\n\n\n\n\nTop-Level Architecture\n\nClocking: Lattice HSOSC at ~6 MHz (CLKHF_DIV=2'b11).\nKeypad interface:\n\nRows (Row[3:0]) are FPGA outputs, one row driven LOW at a time (scan).\nColumns (Col[3:0]) are FPGA inputs with pull-ups (PULLMODE=UP). A pressed key shorts the active low row to its column → that column reads 0.\n\nScanner (KeypadScan):\n\nRound-robin row scan (≈2 kHz), 2-FF synchronizers on Col[3:0].\nFSM with states IDLE → DEB → HELD.\n\nOn first detection, freeze the candidate row/col and debounce for a few scan ticks.\nEmit a 1-cycle key_valid on acceptance, then ignore other keys until all columns return high.\n\n\nDisplay path: On key_valid, shift {D_left, D_right} ← {D_right, key_code}. A single SevenSeg instance decodes the selected nibble; DMux alternates enables (En1, En2) and feeds the decoder input (s) at a fixed duty to avoid brightness variation.\n\n\n\n\n\n\n\nFigure 2: RTL"
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#state-machine-specification",
+    "href": "labs/Lab 3/Lab3.html#state-machine-specification",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "State Machine Specification",
+    "text": "State Machine Specification\n\nState Diagram\n\n\n\n\n\n\nFigure 3: FSM"
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#state-transition-table",
+    "href": "labs/Lab 3/Lab3.html#state-transition-table",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "State Transition Table",
+    "text": "State Transition Table\n\nIDLE – transitions\n\n\n\n\n\n\n\n\n\nCurrent State\nCondition (plain English)\nNext State\nNotes\n\n\n\n\nIDLE\nA key seems pressed (while scanning, some column reads LOW)\nDEB\nLatch the candidate key = (active row, first LOW column); compute hex\n\n\nIDLE\nOtherwise\nIDLE\nContinue round-robin row scan\n\n\n\n\n\nDEB – transitions\n\n\n\n\n\n\n\n\n\nCurrent State\nCondition (plain English)\nNext State\nNotes\n\n\n\n\nDEB\nAll columns are HIGH again (looks like release or a glitch)\nIDLE\nAbort debounce; resume scanning\n\n\nDEB\nOn the scan strobe, the same candidate column is still LOW and the stable count just reached the target (e.g., 3 in a row)\nHELD\nAccept the key; emit a one-clock key_valid pulse\n\n\nDEB\nOn the scan strobe, the same candidate column is still LOW but the stable count hasn’t reached the target\nDEB\nKeep counting consecutive stable observations\n\n\nDEB\nOn the scan strobe, the candidate column is not LOW\nDEB\nReset the stable counter to zero\n\n\nDEB\nOtherwise\nDEB\nKeep the candidate row held LOW and wait for next scan strobe\n\n\n\n\n\nHELD – transitions\n\n\n\n\n\n\n\n\n\nCurrent State\nCondition (plain English)\nNext State\nNotes\n\n\n\n\nHELD\nAll columns are HIGH (the key has been fully released)\nIDLE\nReturn to scanning; allow a new key\n\n\nHELD\nOtherwise (key still held, or other keys also pressed)\nHELD\nIgnore additional keys until full release\n\n\n\n\n\nOutputs & Actions (per state)\n\n\n\n\n\n\n\n\n\nState\nRow Drive (what we drive on the keypad)\nRegisters / Counters (what we latch/update)\nOne-Cycle Outputs\n\n\n\n\nIDLE\nRound-robin: one row LOW at a time (…1110 → 1101 → 1011 → 0111…)\nOn first LOW column: latch candidate row & column, compute and hold candidate hex, clear stable counter\nkey_valid = 0\n\n\nDEB\nFreeze: keep only the candidate row LOW\nOn each scan strobe: if same column still LOW → increment stable counter; else reset to 0\nWhen target count reached on a strobe: key_valid = 1 (one clock)\n\n\nHELD\nFreeze: keep only the candidate row LOW\nWait until all columns HIGH (full release); counters unchanged\nkey_valid = 0\n\n\n\n\nMini-glossary (for the table)\n\nScan strobe: periodic tick that advances row scan and paces debouncing.\nCandidate key: first detected (row, column) pair; row is held during debounce.\nStable count: number of consecutive scan strobes where that same column remains LOW (target e.g. 3).\nAll columns HIGH: no key asserted (1111 due to pull-ups).\n\n\n\n\n\nOne-liners for implementation cross-check\n\nAccept press when: state==DEB && scan_tick && stable_cand && deb_cnt==N_stable-1 → key_valid&lt;=1, state&lt;=HELD.\nAbort bounce when: state==DEB && all_released → deb_cnt&lt;=0, state&lt;=IDLE.\nIgnore additional keys while HELD: do nothing until all_released."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#debouncing-metastability",
+    "href": "labs/Lab 3/Lab3.html#debouncing-metastability",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Debouncing & Metastability",
+    "text": "Debouncing & Metastability\n\nSynchronizers: Each Col[x] passes through a two-flip-flop chain (col_s1 → col_sync) clocked at 6 MHz to mitigate metastability.\nDebounce window: Acceptance requires three stable observations of the candidate column under a frozen row. This balances responsiveness and immunity to mechanical bounce.\nSingle-event guarantee: key_valid is generated once, on the press edge only. While in HELD, new presses are ignored until release."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#timing-multiplexing",
+    "href": "labs/Lab 3/Lab3.html#timing-multiplexing",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Timing & Multiplexing",
+    "text": "Timing & Multiplexing\n\nScan Timing\nA 13-bit divider creates a ~2 kHz scan tick. Rows step: 1110 → 1101 → 1011 → 0111. The debounce counter advances only on scan ticks. Timing can be seen on top Module Wave form.\n\n\nDisplay Timing (DMux)\nDMux toggles a digit select at ~50 Hz (counter=60 000 at 6 MHz → 50 Hz).\n\ns = (DivClk) ? D_right : D_left\nEn2 = DivClk, En1 = ~DivClk\nConstant duty keeps brightness uniform, independent of the number of lit segments.\n\nTiming can be seen on top Module Wave form."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#pinout-orientation",
+    "href": "labs/Lab 3/Lab3.html#pinout-orientation",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Pinout & Orientation",
+    "text": "Pinout & Orientation\n\nRows (outputs): connect to keypad R0..R3.\nColumns (inputs w/ pull-up): connect to keypad C0..C3.\nThe map_hex table encodes the keypad legend for (row, col) indices consistent with the chosen orientation.\n\n\n\n\n\n\n\nFigure 4: Layout Schematic"
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#hdl-summary-files-roles",
+    "href": "labs/Lab 3/Lab3.html#hdl-summary-files-roles",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "HDL Summary (files & roles)",
+    "text": "HDL Summary (files & roles)\n\ntop.sv — HSOSC, KeypadScan, capture registers for last two digits, DMux, SevenSeg.\nKeypadScan.sv — row scan, 2-FF input sync, IDLE/DEB/HELD FSM, map_hex(r,c).\nDMux.sv — display multiplexer + digit enables (fixed duty).\nSevenSeg.sv — combinational hex→segments (active-LOW).\n\nAll combinational logic is in always_comb; sequential is in always_ff with a single driver per reg (no latches, no tri-states)."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#simulation-verification",
+    "href": "labs/Lab 3/Lab3.html#simulation-verification",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Simulation & Verification",
+    "text": "Simulation & Verification\n\nTestbench Strategy\n\nA behavioral keypad model drives Col[3:0] LOW only when the DUT selects the matching row LOW.\nThe TB issues a sequence of 16 keys (walks the matrix), waits for key_valid, and then checks the two displayed digits by sampling when each enable is active.\nNegative tests:\n\nHold one key, “press” another → verify the second is ignored until release.\nInject brief bounces on a column line → ensure single registration.\n\n\n\n\n\n\n\n\n\n\nFigure 5: Keypad Scan, Dmux, and Top waveforms.\n\n\n\n\n\n\n\n\n\n\nFigure 6: waveform transcript (1 expected X-case mismatch at vec 0).\n\n\n\n\n\n\n\nResults (simulation)\n\nEach programmed key press produced one key_valid pulse and the expected key_code.\nWith one key held, additional simulated presses did not register.\nDisplay sampling showed stable, non-flickering output; both digits had equal duty."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#hardware-bring-up-measurements",
+    "href": "labs/Lab 3/Lab3.html#hardware-bring-up-measurements",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Hardware Bring-Up & Measurements",
+    "text": "Hardware Bring-Up & Measurements\n\nVerified with a multimeter that each button shorts exactly one Row to one Col (&lt;100 Ω) and that Col idles at 1111 with no key (internal pull-ups).\nConfirmed row order and column order match the map_hex orientation by observing a temporary LED debug (~Row, ~Col) and adjusting constraints where needed.\nFinal board test: pressing any key updates the right digit; the previous right digit shifts to the left. Press-and-hold does not cause repeats; additional presses are ignored until release."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#design-tradeoffs-alternatives",
+    "href": "labs/Lab 3/Lab3.html#design-tradeoffs-alternatives",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Design Tradeoffs & Alternatives",
+    "text": "Design Tradeoffs & Alternatives\n\nDebounce length: I chose 3 scan-ticks (≈1.5 ms at ~2 kHz) for a good balance of responsiveness vs. bounce immunity. Longer windows reduce false triggers but feel less snappy.\nScan rate: ~2 kHz row stepping comfortably exceeds bounce dynamics and avoids aliasing; slower scanning risks missing very short taps.\nSingle decoder + mux: Minimizes area and guarantees identical glyphs; the tradeoff is a need for careful duty control to keep brightness uniform.\nFirst-press policy vs. NKRO: For a diode-less matrix, “first-press wins” avoids ghosting; true multi-key (NKRO) would require per-switch diodes or a more complex detection + ghost-masking strategy.\nSynchronizers: 2-FF is sufficient at 6 MHz; 3-FF would further reduce MTBF at the cost of extra latency."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#schematic-notes",
+    "href": "labs/Lab 3/Lab3.html#schematic-notes",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Schematic Notes",
+    "text": "Schematic Notes\n\nColumns: inputs with PULLMODE=UP\nRows: push-pull outputs; one driven LOW at a time.\nDisplay: common-anode; segment resistors per segment; enables at constant duty."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#conclusions",
+    "href": "labs/Lab 3/Lab3.html#conclusions",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Conclusions",
+    "text": "Conclusions\nThe implemented keypad scanner meets the lab requirements:\n\nCorrectly reads the 4×4 keypad, debounces, and registers once per press.\nIgnores additional keys while one is held.\nDrives the dual 7-segment display with stable brightness and correct ordering (most-recent on right).\nUses clean, latch-free, tri-state-free RTL with proper synchronizers.\n\nTime spent: (12 hours). Known limitations / future work:\n\nAdd a compile-time option to speed the scan/dividers in simulation.\nAuto-detect row/col orientation at power-up to reduce pin-map bring-up friction."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#appendix",
+    "href": "labs/Lab 3/Lab3.html#appendix",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "Appendix",
+    "text": "Appendix\n\nFile List\ntop.sv\nKeypadScan.sv\nDMux.sv\nSevenSeg.sv\nhsosc_sim.sv   // simulation model only\n*_tb.sv        // keypad + display testbenches\n\n\nKey Equations\n\nDisplay scan: \\(f_{\\text{scan}} = \\dfrac{f_{\\text{clk}}}{2N}\\) (N = DMux terminal count).\nDebounce window: \\(T_{\\text{deb}} = N_{\\text{stable}} / f_{\\text{row-scan}}\\)."
+  },
+  {
+    "objectID": "labs/Lab 3/Lab3.html#ai-implementation",
+    "href": "labs/Lab 3/Lab3.html#ai-implementation",
+    "title": "Lab 3: Keypad Scanner",
+    "section": "AI Implementation",
+    "text": "AI Implementation\n\nPrompt used\n\nTarget device: Lattice iCE40 UP5K FPGA with internal high-speed oscillator (~20 MHz).\nWrite synthesizable SystemVerilog to scan a 4×4 matrix keypad and display the last two hex keys pressed on a dual 7-segment display. Implement: • A clock divider that derives a scan clock on the order of 100–200 Hz from the internal oscillator. • A keypad scanning controller that iterates one active-low column at a time and samples active-low rows, registering at most one key per press (debounce-by-design), ignoring additional presses while any key is held, and allowing a new registration only after release. • A top level that updates two hex digits (older and most recent) when a new key is registered and drives a time-multiplexed two-digit 7-segment display without visible flicker and with balanced brightness. Use idiomatic SystemVerilog (e.g., logic, always_ff, enumerated states for FSMs). Provide clean module boundaries and keep all state synchronous. Include brief comments explaining the design choices. Create a new Radiant project, type the code generated by the LLM in and analyze the results. If the synthesis fails, type the error message back into the LLM to see what suggestions it generates.\n\n\n\nWhat the LLM produced\n\nGood ideas it used\n\nClear module split: KeypadScan (scanner + debounce FSM), DMux (digit scan/mux), SevenSeg (combinational hex→segments), top (capture two digits, wire-up).\nSynchronous FSM with three states (IDLE → DEB → HELD), a one-shot key_valid pulse on accept, and two-flip-flop synchronizers on the asynchronous column inputs.\nRound-robin row drive and frozen row during debounce, which prevents ghosting and enforces “first press wins.”\nTime-multiplexed display with fixed duty for uniform brightness, and active-LOW segment patterns for a common-anode display.\nIncluded a scan tick to pace debounce (stable-N policy), keeping all counters/sequencing in always_ff and decoding in always_comb.\n\nGaps I had to fix\n\nRow/column polarity & direction: the prompt assumed active-low columns and sampled rows, but our board drives rows (active-LOW) and reads columns (with pull-ups). I corrected the interface and comments to match hardware.\nKey mapping: the default (row,col)→hex map didn’t match the physical keypad legend; I rewrote map_hex to our layout.\nMultiple drivers risk: key_valid was assigned in more than one procedural context in one draft. I consolidated to a single always_ff.\nDebounce edge case: the counter was clocked every system cycle; I tied it to the scan strobe so stability is measured per row sample.\nSimulation speed: initial dividers made sims painfully long; I added small counts under a guarded sim mode while leaving hardware rates intact.\n\n\n\n\nQuality rating (and why)\n\nRating: A-\nWhy: The LLM delivered a solid modular architecture and a correct synchronous FSM with proper input synchronization and single-event registration. Most fixes were integration details (board polarity, key legend, divider sizing) rather than structural rewrites.\n\n\n\nDid it synthesize first time?\n\nAlmost. It compiled after minor edits:\n\nAlign row/column direction and polarity with our board.\nFix a single-writer rule on key_valid.\nAdjust the (row,col)→hex lookup to the actual keypad legend.\nTweak divider constants (fast for sim, slow for hardware) and confirm no latches/tri-states.\n\n\n\n\nWhat I’d do differently next time with an LLM\n\nState the physical contract explicitly in the prompt: “Rows = outputs, active-LOW; Columns = inputs with pull-ups (idle=1111); Segments active-LOW; digit enables En1/En2 select left/right.”\nProvide the keypad legend and pin swap up front and ask the model to generate map_hex from a small (row,col)→label table.\nAsk for +ifdef SIM dividers from the start to keep waveforms short and readable.\nRequire one-process-per-reg and “no $clog2/parameters” if a strict style is desired, so the draft matches house style without edits."
   },
   {
     "objectID": "posts/FirstPost.html",
