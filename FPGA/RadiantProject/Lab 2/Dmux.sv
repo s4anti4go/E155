@@ -5,7 +5,7 @@
  * Date:   2025-09-11
  *
  * Description:
- *   FPGA-side design for Lab 1. Includes:
+ *   FPGA-side design for Lab 2. Includes:
  *     - SevenSeg: combinational hex→7-segment decoder for common-anode display
  *                 (seg[6:0] active-LOW; seg[0]=A .. seg[6]=a).
  *     - Dmux: Selects enable and clock counting
