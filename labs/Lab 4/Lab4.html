@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Santiago Burgos-Fallon">
-<meta name="dcterms.date" content="2025-09-18">
-<meta name="description" content="Use MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations">
+<meta name="dcterms.date" content="2025-09-30">
+<meta name="description" content="Square-wave audio synthesis with timer-driven GPIO → LM386 → 8 Ω speaker. No CMSIS; bare-metal register macros.">
 
-<title>Lab 4: Digital Audio – E155 Portfolio</title>
+<title>Lab 4: Digital Audio — Für Elise on STM32L432KC – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -72,6 +72,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -122,23 +151,54 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
+  <ul class="collapse">
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  </ul></li>
+  <li><a href="#system-overview" id="toc-system-overview" class="nav-link" data-scroll-target="#system-overview">System Overview</a></li>
+  <li><a href="#hardware" id="toc-hardware" class="nav-link" data-scroll-target="#hardware">Hardware</a>
+  <ul class="collapse">
+  <li><a href="#lm386-minimum-parts-hookup" id="toc-lm386-minimum-parts-hookup" class="nav-link" data-scroll-target="#lm386-minimum-parts-hookup">LM386 minimum-parts hookup</a></li>
+  </ul></li>
+  <li><a href="#timing-accuracy-detailed-calculations-1-µs-timer-tick-tim2-32-bit" id="toc-timing-accuracy-detailed-calculations-1-µs-timer-tick-tim2-32-bit" class="nav-link" data-scroll-target="#timing-accuracy-detailed-calculations-1-µs-timer-tick-tim2-32-bit">Timing &amp; Accuracy — Detailed Calculations (1 µs Timer Tick, TIM2 32-bit)</a>
+  <ul class="collapse">
+  <li><a href="#core-formulae" id="toc-core-formulae" class="nav-link" data-scroll-target="#core-formulae">Core Formulae</a></li>
+  <li><a href="#theoretical-frequency-limits-timer-only" id="toc-theoretical-frequency-limits-timer-only" class="nav-link" data-scroll-target="#theoretical-frequency-limits-timer-only">Theoretical Frequency Limits (Timer-Only)</a></li>
+  <li><a href="#representative-notes-actual-values-from-round-to-µs" id="toc-representative-notes-actual-values-from-round-to-µs" class="nav-link" data-scroll-target="#representative-notes-actual-values-from-round-to-µs">Representative Notes — Actual Values (from round-to-µs)</a></li>
+  <li><a href="#software-polled-limitations-practical-upper-bound" id="toc-software-polled-limitations-practical-upper-bound" class="nav-link" data-scroll-target="#software-polled-limitations-practical-upper-bound">Software-Polled Limitations (Practical Upper Bound)</a></li>
+  <li><a href="#compliance-statement-from-these-calculations" id="toc-compliance-statement-from-these-calculations" class="nav-link" data-scroll-target="#compliance-statement-from-these-calculations">Compliance Statement (from these calculations)</a></li>
+  </ul></li>
+  <li><a href="#schematic" id="toc-schematic" class="nav-link" data-scroll-target="#schematic">Schematic</a></li>
+  <li><a href="#writeup-summary-general-specs" id="toc-writeup-summary-general-specs" class="nav-link" data-scroll-target="#writeup-summary-general-specs">Writeup / Summary (General Specs)</a></li>
+  <li><a href="#verification-bring-up" id="toc-verification-bring-up" class="nav-link" data-scroll-target="#verification-bring-up">Verification &amp; Bring-Up</a></li>
+  <li><a href="#ai-prototype-reflection" id="toc-ai-prototype-reflection" class="nav-link" data-scroll-target="#ai-prototype-reflection">AI Prototype &amp; Reflection</a>
+  <ul class="collapse">
+  <li><a href="#prompt-used" id="toc-prompt-used" class="nav-link" data-scroll-target="#prompt-used">Prompt used</a></li>
+  <li><a href="#reflection" id="toc-reflection" class="nav-link" data-scroll-target="#reflection">Reflection</a></li>
+  </ul></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Lab 4: Digital Audio</h1>
+<h1 class="title">Lab 4: Digital Audio — Für Elise on STM32L432KC</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">Labs</div>
+    <div class="quarto-category">-Labs</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    Use MCU to play music by using timers to generate square waves by toggling a GPIO pin at a specific frequency for specified durations
+    Square-wave audio synthesis with timer-driven GPIO → LM386 → 8 Ω speaker. No CMSIS; bare-metal register macros.
   </div>
 </div>
 
@@ -155,7 +215,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 18, 2025</p>
+      <p class="date">September 30, 2025</p>
     </div>
   </div>
   
@@ -167,8 +227,370 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab I used an <strong>STM32L432KC</strong> MCU to play music by toggling a GPIO at precise, timer-controlled rates and feeding the signal into an <strong>LM386</strong> amplifier that drives an <strong>8 Ω</strong> speaker. The score (Für Elise) is provided as a list of <code>{frequency_Hz, duration_ms}</code> pairs. A frequency of <strong>0</strong> is a <strong>rest</strong>, and a duration of <strong>0</strong> ends the song.</p>
+<p>I implemented everything <strong>without CMSIS</strong>: only <strong><code>#define</code> memory-mapped register macros</strong> and small helper functions.</p>
+<section id="learning-objectives" class="level3">
+<h3 class="anchored" data-anchor-id="learning-objectives">Learning Objectives</h3>
+<ul>
+<li>Build a circuit to let an MCU I/O pin drive a speaker (via <strong>LM386</strong>).</li>
+<li>Implement timer functionality by reading the datasheet and writing a tiny device driver from scratch.</li>
+<li>Generate accurate pitches independent of note frequency and respect the specified durations.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">System Overview</h2>
+<ul>
+<li><strong>Timer plan:</strong> prescale <strong>TIM2</strong> to a <strong>1 MHz</strong> tick (1 µs per timer count). For a note of frequency ( f ), set the timer <strong>auto-reload</strong> to the <strong>half-period in µs</strong> and <strong>toggle</strong> the GPIO on every <strong>update event</strong> → <strong>50% duty</strong> square wave by construction.</li>
+<li><strong>Duration plan:</strong> compute how many <strong>half-periods</strong> fit in the requested milliseconds and toggle exactly that many times.</li>
+<li><strong>Rests:</strong> keep the output low and wait for <strong>ms</strong> timer updates at <strong>1 kHz</strong> (ARR = 999 at a 1 MHz tick).</li>
+</ul>
+<p><strong>Pins used (hardware build):</strong> Audio out <strong>PA11</strong> (GPIO to LM386 IN+ via pot/divider), <strong>START = PB4</strong> (active-low to GND, internal pull-up), <strong>RESET = PA6</strong> (active-low to GND, internal pull-up).</p>
+<hr>
+</section>
+<section id="hardware" class="level2">
+<h2 class="anchored" data-anchor-id="hardware">Hardware</h2>
+<section id="lm386-minimum-parts-hookup" class="level3">
+<h3 class="anchored" data-anchor-id="lm386-minimum-parts-hookup">LM386 minimum-parts hookup</h3>
+<ul>
+<li><strong>Input network:</strong>
+<ul>
+<li><strong>10 kΩ potentiometer (recommended):</strong> MCU pin → pot <strong>top</strong>; pot <strong>bottom</strong> → GND; <strong>wiper → LM386 pin 3 (IN+)</strong> (volume).</li>
+</ul></li>
+<li><strong>LM386 pins:</strong>
+<ul>
+<li><strong>Pin 3 (IN+)</strong>: from pot wiper or divider node.<br>
+</li>
+<li><strong>Pin 2 (IN−)</strong> and <strong>Pin 4</strong>: GND.<br>
+</li>
+<li><strong>Pin 5 (OUT)</strong>: → <strong>220–250 µF electrolytic</strong> (+ toward LM386) → speaker +; speaker − → GND; add <strong>0.047–0.05 µF</strong> from pin 5 → GND (stability).<br>
+</li>
+<li><strong>Pin 6 (V_S)</strong>: +5…9 V with <strong>0.1 µF</strong> (and <strong>10 µF</strong>) decoupling to GND near the IC.<br>
+</li>
+<li><strong>Pins 1 &amp; 8</strong>: open (gain ≈ 20).</li>
+</ul></li>
+</ul>
+<blockquote class="blockquote">
+<p><strong>Common ground:</strong> MCU GND, LM386 GND, and speaker − must be tied together.</p>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="timing-accuracy-detailed-calculations-1-µs-timer-tick-tim2-32-bit" class="level2">
+<h2 class="anchored" data-anchor-id="timing-accuracy-detailed-calculations-1-µs-timer-tick-tim2-32-bit">Timing &amp; Accuracy — Detailed Calculations (1 µs Timer Tick, TIM2 32-bit)</h2>
+<p><strong>Assumptions:</strong><br>
+TIM2 prescaled to <strong>1 MHz</strong> (1 µs per count), upcount to <code>ARR</code>, <strong>toggle GPIO on each update</strong> (so each update = one <strong>half-period</strong>). Frequencies are produced by rounding the half-period; durations are produced by counting half-periods. TIM2 on STM32L432 is <strong>32-bit</strong>.</p>
+<section id="core-formulae" class="level3">
+<h3 class="anchored" data-anchor-id="core-formulae">Core Formulae</h3>
+<p>Half-period in microseconds for target frequency ( f ) (Hz): <span class="math display">\[
+T_{1/2} \;=\; \frac{1}{2f}\ \text{s} \;=\; \frac{500{,}000}{f}\ \text{µs}
+\]</span></p>
+<p>Program auto-reload as: <span class="math display">\[
+ARR \;=\; \operatorname{round}(T_{1/2}) \;-\; 1
+\]</span></p>
+<p>Actual frequency (because timer quantizes in 1 µs steps): <span class="math display">\[
+f_{\text{actual}} \;=\; \frac{1}{2\,\bigl(ARR+1\bigr)\cdot1\ \text{µs}}
+\;=\;
+\frac{500{,}000}{ARR+1}\ \text{Hz}
+\]</span></p>
+<p>Per-half-period rounding is at most <strong>±0.5 µs</strong>. Over the full period (two half-periods), the <strong>relative</strong> pitch error is bounded by: <span class="math display">\[
+\left|\frac{\Delta f}{f}\right| \;\lesssim\; \frac{f}{10^{6}}
+\quad\text{(with 1 µs tick)}
+\]</span></p>
+<p>At <strong>1 kHz</strong> → ≤ <strong>0.10 %</strong>; at <strong>220 Hz</strong> → ≤ <strong>0.022 %</strong> (≪ 1 %).</p>
+<hr>
+</section>
+<section id="theoretical-frequency-limits-timer-only" class="level3">
+<h3 class="anchored" data-anchor-id="theoretical-frequency-limits-timer-only">Theoretical Frequency Limits (Timer-Only)</h3>
+<p>Using 1 µs tick and a 32-bit auto-reload:</p>
+<ul>
+<li><p><strong>Minimum frequency</strong> largest half-period, <span class="math inline">\((ARR_{max}= 2^{32}-1)\)</span>: <span class="math display">\[
+T_{1/2,\max}=(ARR_{\max}+1)\cdot1\,\text{µs}=4{,}294{,}967{,}296\ \text{µs}
+=4{,}294.967296\ \text{s}
+\]</span> Full period <strong>8,589.934592 s</strong>. <span class="math display">\[
+\boxed{f_{\min}=\frac{1}{8{,}589.934592}\ \text{Hz}=\mathbf{0.0001164153\ Hz}}
+\]</span> (period ≈ <strong>2 h 23 m 10 s</strong>)</p></li>
+<li><p><strong>Maximum frequency</strong> (smallest half-period, (ARR=0)): <span class="math display">\[
+T_{1/2,\min}=1\,\text{µs}\;\Rightarrow\;T=2\,\text{µs},\qquad
+\boxed{f_{\max}=\mathbf{500{,}000\ Hz}}
+\]</span></p></li>
+</ul>
+<hr>
+</section>
+<section id="representative-notes-actual-values-from-round-to-µs" class="level3">
+<h3 class="anchored" data-anchor-id="representative-notes-actual-values-from-round-to-µs">Representative Notes — Actual Values (from round-to-µs)</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Target (f) (Hz)</th>
+<th style="text-align: right;">(T_{1/2}) ideal (µs) → rounded</th>
+<th style="text-align: right;">(ARR)</th>
+<th style="text-align: right;">(f_{}) (Hz)</th>
+<th style="text-align: right;">Error</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">220.0</td>
+<td style="text-align: right;">2272.727… → <strong>2273</strong></td>
+<td style="text-align: right;">2272</td>
+<td style="text-align: right;"><strong>219.9736</strong></td>
+<td style="text-align: right;">−0.012 %</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">329.6</td>
+<td style="text-align: right;">1516.989… → <strong>1517</strong></td>
+<td style="text-align: right;">1516</td>
+<td style="text-align: right;"><strong>329.5979</strong></td>
+<td style="text-align: right;">−0.00064 %</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">440.0</td>
+<td style="text-align: right;">1136.364… → <strong>1136</strong></td>
+<td style="text-align: right;">1135</td>
+<td style="text-align: right;"><strong>440.1408</strong></td>
+<td style="text-align: right;">+0.032 %</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">523.3</td>
+<td style="text-align: right;">955.467… → <strong>955</strong></td>
+<td style="text-align: right;">954</td>
+<td style="text-align: right;"><strong>523.5602</strong></td>
+<td style="text-align: right;">+0.050 %</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">659.3</td>
+<td style="text-align: right;">758.380… → <strong>758</strong></td>
+<td style="text-align: right;">757</td>
+<td style="text-align: right;"><strong>659.6306</strong></td>
+<td style="text-align: right;">+0.050 %</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1000.0</td>
+<td style="text-align: right;">500.000… → <strong>500</strong></td>
+<td style="text-align: right;">499</td>
+<td style="text-align: right;"><strong>1000.0000</strong></td>
+<td style="text-align: right;">+0.000 %</td>
+</tr>
+</tbody>
+</table>
+<blockquote class="blockquote">
+<p><strong>Frequency step size</strong> near a given (f) from a 1 µs half-period grid is approximately<br>
+(f ). Examples: at <strong>1 kHz</strong> → ~<strong>2 Hz</strong>/step; at <strong>220 Hz</strong> → ~<strong>0.097 Hz</strong>/step.</p>
+</blockquote>
+<hr>
+<section id="duration-quantization-notes-what-it-is-why-it-happens-and-how-big-the-error-is" class="level4">
+<h4 class="anchored" data-anchor-id="duration-quantization-notes-what-it-is-why-it-happens-and-how-big-the-error-is">Duration Quantization (Notes): What it is, why it happens, and how big the error is</h4>
+<p><strong>Model.</strong> Each note is played by executing an <strong>integer number of half-periods</strong> (one GPIO toggle per timer update).<br>
+Let the target frequency be (f) (Hz) and the requested duration be (d) (ms).</p>
+<ul>
+<li>Half-period (with a 1 µs timer tick): <span class="math display">\[
+T_{1/2} \;=\; \frac{1}{2f}\ \text{s} \;=\; \frac{500{,}000}{f}\ \mu\text{s}
+\]</span></li>
+<li>Ideal (real-valued) number of toggles: <span class="math display">\[
+N^* \;=\; \frac{2 f d}{1000}
+\]</span></li>
+<li>Implemented toggles (what code uses): (N=(N^*)) (nearest integer).<br>
+Actual time played: <span class="math display">\[
+t_{\text{actual}} \;=\; N\cdot T_{1/2}
+\]</span></li>
+</ul>
+<p><strong>Why quantization error occurs.</strong> Because (N) must be an <strong>integer</strong>, (N) can differ from <span class="math inline">\((N^*)\)</span> by at most <span class="math inline">\((T_{1/2})\)</span>. Multiplying by <span class="math inline">\((T_{1/2})\)</span> gives the worst-case time error: <span class="math display">\[
+\boxed{\,|\Delta t_{\text{note}}| \;\le\; \tfrac{1}{2}\,T_{1/2}\,}
+\]</span></p>
+<p><strong>Interpretation.</strong> - The <strong>step size</strong> of note duration is exactly <span class="math display">\[(T_{1/2})\]</span> (each additional toggle adds one half-period). - The <strong>largest absolute error</strong> happens at <strong>low frequencies</strong> <span class="math display">\[(large (T_{1/2}))\]</span>, because the duration “grid” is coarser. - For a <strong>given requested duration</strong> (d) (e.g., 125 ms), the <strong>percent error</strong> bound is <span class="math display">\[
+  \boxed{\,\%\text{error} \;\le\; \frac{T_{1/2}}{2\,d}\times 100\%\,}
+  \]</span></p>
+</section>
+<section id="explicit-values" class="level4">
+<h4 class="anchored" data-anchor-id="explicit-values">Explicit values</h4>
+<ul>
+<li><p>( f = 220, ):<br>
+<span class="math display">\[
+T_{1/2} = \frac{500{,}000}{220} = 2272.727\,\mu\text{s} = \mathbf{2.273\,\text{ms}}
+\]</span> <span class="math display">\[
+|\Delta t| \le \tfrac{1}{2}T_{1/2} = \mathbf{1.136\,\text{ms}}
+\]</span> <span class="math display">\[
+\%\text{error} \le \frac{2.273}{2\cdot 125}\times 100\% = \mathbf{0.91\%}
+\]</span></p></li>
+<li><p>( f = 440, ):<br>
+<span class="math display">\[
+T_{1/2} = \frac{500{,}000}{440} = 1136.364\,\mu\text{s} = \mathbf{1.136\,\text{ms}}
+\]</span> <span class="math display">\[
+|\Delta t| \le \mathbf{0.568\,\text{ms}}
+\]</span> <span class="math display">\[
+\%\text{error} \le \frac{1.136}{2\cdot 125}\times 100\% = \mathbf{0.45\%}
+\]</span></p></li>
+<li><p>( f = 659.3, ):<br>
+<span class="math display">\[
+T_{1/2} = \frac{500{,}000}{659.3} = 758.380\,\mu\text{s} = \mathbf{0.758\,\text{ms}}
+\]</span> <span class="math display">\[
+|\Delta t| \le \mathbf{0.379\,\text{ms}}
+\]</span> <span class="math display">\[
+\%\text{error} \le \frac{0.758}{2\cdot 125}\times 100\% = \mathbf{0.30\%}
+\]</span></p></li>
+<li><p>( f = 1000, ):<br>
+<span class="math display">\[
+T_{1/2} = \frac{500{,}000}{1000} = 500.000\,\mu\text{s} = \mathbf{0.500\,\text{ms}}
+\]</span> <span class="math display">\[
+|\Delta t| \le \mathbf{0.250\,\text{ms}}
+\]</span> <span class="math display">\[
+\%\text{error} \le \frac{0.500}{2\cdot 125}\times 100\% = \mathbf{0.20\%}
+\]</span></p></li>
+</ul>
+<blockquote class="blockquote">
+<p><strong>Rests:</strong> handled by a 1 kHz “ms timer” → <strong>granularity 1 ms</strong>. Since your rest durations are already integers in ms, the <strong>rest error is 0 ms</strong> (within that 1 ms quantum).</p>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="software-polled-limitations-practical-upper-bound" class="level3">
+<h3 class="anchored" data-anchor-id="software-polled-limitations-practical-upper-bound">Software-Polled Limitations (Practical Upper Bound)</h3>
+<p>I implement notes by <strong>polling</strong> TIM2’s update flag (UIF), then <strong>clearing UIF</strong> and <strong>toggling the GPIO</strong>. The timer can generate very fast updates, but to avoid <strong>missed toggles</strong> the CPU must service each update <strong>before the next half-period elapses</strong>.</p>
+<p>Let</p>
+<ul>
+<li><span class="math inline">\(f_{cpu}\)</span> = core clock (e.g., 80 MHz)<br>
+</li>
+<li><span class="math inline">\(t_{service}\)</span> = time for me to (1) detect UIF=1 and exit the loop, (2) clear <code>TIM2_SR</code>, and (3) toggle the ODR bit (plus loop overhead)</li>
+</ul>
+<p>To guarantee no misses I need the half-period to exceed my service time:</p>
+<p><span class="math display">\[
+T_{1/2} \;&gt;\; t_{\text{service}}
+\quad\Longrightarrow\quad
+f_{\max,\text{service}} \;\approx\; \frac{1}{2\,t_{\text{service}}}
+\]</span></p>
+<section id="concrete-examples" class="level4">
+<h4 class="anchored" data-anchor-id="concrete-examples">Concrete examples</h4>
+<p><span class="math display">\[t_{\text{service}} = 2.0,\mu\text{s}\]</span> <span class="math display">\[
+  f_{\max,\text{service}} \approx \frac{1}{2\cdot 2.0\,\mu\text{s}} = \mathbf{250\,\text{kHz}}
+  \]</span> <span class="math display">\[t_{\text{service}} = 1.0,\mu\text{s}\]</span> <span class="math display">\[
+  f_{\max,\text{service}} \approx \frac{1}{2\cdot 1.0\,\mu\text{s}} = \mathbf{500\,\text{kHz}}
+  \]</span> <span class="math display">\[t_{\text{service}} = 0.5,\mu\text{s}\]</span> <span class="math display">\[
+  f_{\max,\text{service}} \approx \frac{1}{2\cdot 0.5\,\mu\text{s}} = \mathbf{1.0\,\text{MHz}}
+  \]</span></p>
+<p>However, with my <strong>1 µs timer tick</strong>, the <strong>timer itself</strong> caps the maximum frequency at</p>
+<p><span class="math display">\[
+f_{\max,\text{timer}} \;=\; \frac{1}{2\cdot 1\,\mu\text{s}} \;=\; \mathbf{500\,\text{kHz}}
+\]</span></p>
+<p>So the <strong>true practical max</strong> is</p>
+<p><span class="math display">\[
+f_{\max} \;=\; \min\!\bigl(f_{\max,\text{service}},\, f_{\max,\text{timer}}\bigr)
+\]</span></p>
+<p>In other words:</p>
+<ul>
+<li>If <span class="math inline">\(t_{service}\)</span> &gt; 1s → <strong>software-limited</strong> below 500 kHz<br>
+</li>
+<li>If <span class="math inline">\(t_{service}\)</span> &lt; 1s → <strong>timer-limited</strong> at 500 kHz</li>
+</ul>
+<p>Either way, this is <strong>orders of magnitude above audio</strong>. My Für Elise range (220–1319 Hz) is tiny compared to even a conservative <strong>software-limited</strong> few-hundred-kHz ceiling.</p>
+<hr>
+</section>
+</section>
+<section id="compliance-statement-from-these-calculations" class="level3">
+<h3 class="anchored" data-anchor-id="compliance-statement-from-these-calculations">Compliance Statement (from these calculations)</h3>
+<ul>
+<li><strong>Pitch accuracy (220–1000 Hz):</strong> worst-case rounding ≤ <strong>0.10 %</strong> <span class="citation" data-cites="1">@1</span> kHz and ≤ <strong>0.022 %</strong> <span class="citation" data-cites="220">@220</span> Hz → <strong>meets ±1 % spec</strong> with wide margin.</li>
+<li><strong>Durations:</strong> note-length error ≤ <strong>½ (T_{1/2})</strong> (≤ <strong>0.25–1.14 ms</strong> across 1 kHz–220 Hz for 125 ms notes); rests at <strong>1 ms</strong> resolution → tempo is within ~<strong>1 %</strong> worst case, typically <strong>≪ 1 %</strong>.</li>
+<li><strong>Range:</strong> timer math supports (f) from <strong>0.000116 Hz</strong> up to <strong>500 kHz</strong>; software-service considerations are still <strong>far above</strong> the audio range used here.</li>
+</ul>
+</section>
+</section>
+<section id="schematic" class="level2">
+<h2 class="anchored" data-anchor-id="schematic">Schematic</h2>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="general schematic for design">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/schem.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="general schematic for design">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: General Schematic.
+</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+<section id="writeup-summary-general-specs" class="level2">
+<h2 class="anchored" data-anchor-id="writeup-summary-general-specs">Writeup / Summary (General Specs)</h2>
+<ul>
+<li><strong>Meets requirements?</strong> Yes.<br>
+</li>
+<li><strong>Time spent:</strong> <strong>6</strong> hours.<br>
+</li>
+<li><strong>AI prototype:</strong> attempted; reflection below.</li>
+</ul>
+<hr>
+</section>
+<section id="verification-bring-up" class="level2">
+<h2 class="anchored" data-anchor-id="verification-bring-up">Verification &amp; Bring-Up</h2>
+<ul>
+<li><strong>Functional checks</strong>
+<ul>
+<li>Rests (f = 0) produce silence for specified ms.<br>
+</li>
+<li>End marker (duration = 0) terminates playback cleanly.<br>
+</li>
+<li><strong>START (PB4)</strong> gates initial playback; <strong>RESET (PA6)</strong> aborts mid-note.</li>
+</ul></li>
+<li><strong>Debugging approach</strong>
+<ul>
+<li>Added debug watches for computed ( ARR ), half-period, and toggle counts.<br>
+</li>
+<li>Used <strong>run + hit-count breakpoints</strong> (not single-step), since stepping halts the timer and audio.<br>
+</li>
+<li>LED telemetry for “in-note vs rest” helps confirm tempo without a scope.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="ai-prototype-reflection" class="level2">
+<h2 class="anchored" data-anchor-id="ai-prototype-reflection">AI Prototype &amp; Reflection</h2>
+<section id="prompt-used" class="level3">
+<h3 class="anchored" data-anchor-id="prompt-used">Prompt used</h3>
+<blockquote class="blockquote">
+<p><strong>NoteLLM Prompt</strong><br>
+What timers should I use on the STM32L432KC to generate frequencies ranging from 220 Hz to 1 kHz? What’s the best choice of timer if I want to easily connect it to a GPIO pin? What formulae are relevant, and what registers need to be set to configure them properly?</p>
+</blockquote>
+</section>
+<section id="reflection" class="level3">
+<h3 class="anchored" data-anchor-id="reflection">Reflection</h3>
+<ul>
+<li><strong>Quality &amp; speed:</strong> The LLM quickly identified a general-purpose timer (TIM2/TIM3), the key equations <span class="math display">\[
+f = \frac{f_{\text{TIM}}}{(PSC+1)(ARR+1)},\qquad ARR \approx \frac{f_{\text{TIM}}}{f(PSC+1)}-1
+\]</span> and discussed PWM vs.&nbsp;toggle-on-update. It was faster than manual document search when I couldn’t recall register names.</li>
+<li><strong>With datasheet attached:</strong> Accuracy improved—calling out that <strong>TIM2 is 32-bit</strong> on L4 and lives on <strong>APB1</strong> helped bound ranges and justify a <strong>1 MHz</strong> tick.</li>
+<li><strong>Compared to my approach:</strong> I chose <strong>toggle-on-update</strong> to guarantee 50% duty without CCR/PWM setup (simpler for an LM386 square-wave input).<br>
+</li>
+<li><strong>LLM as doc search:</strong> Helpful for <strong>where to look</strong> and <strong>order of operations</strong> (RCC → GPIO → TIM), while I still verified addresses/bitfields in the reference manual.</li>
+<li><strong>Tips that worked:</strong> Specify the target tick (e.g., “make TIM2 1 MHz”), request the <strong>exact init sequence</strong>, and state <strong>pin constraints</strong> so it doesn’t assume PWM unless I want it.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>The design satisfies the lab requirements:</p>
+<ul>
+<li>Plays <strong>Für Elise</strong> at the specified tempo with accurate pitches and rests.</li>
+<li>Uses <strong>bare-metal register macros</strong>; no CMSIS.</li>
+<li>Timing math demonstrates <strong>≤ 0.1%</strong> typical pitch error (≪ 1%) in 220–1000 Hz.</li>
+<li>The <strong>LM386</strong> stage is correctly biased and decoupled; the MCU never drives the speaker directly.</li>
+</ul>
+<p><strong>Time spent:</strong> <strong>6</strong> hours.<br>
+<strong>Future work:</strong> add a second composition; experiment with PWM+CCR for variable duty or an RC-filtered DAC for softer timbre.</p>
+<hr>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
