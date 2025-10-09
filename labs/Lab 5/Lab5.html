@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Santiago Burgos-Fallon">
-<meta name="dcterms.date" content="2025-09-25">
-<meta name="description" content="Use MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts.">
+<meta name="dcterms.date" content="2025-10-09">
+<meta name="description" content="Measure motor speed (rev/s) and direction using EXTI interrupts on a quadrature encoder. A=PA6, B=PB4. ITM/SWO printf at ≥1 Hz.">
 
-<title>Lab 5: Interrupts – E155 Portfolio</title>
+<title>Lab 5: Interrupts — Quadrature Encoder Velocity on STM32L432KC – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -72,6 +72,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -122,15 +151,46 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
+  <ul class="collapse">
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  </ul></li>
+  <li><a href="#system-overview" id="toc-system-overview" class="nav-link" data-scroll-target="#system-overview">System Overview</a>
+  <ul class="collapse">
+  <li><a href="#velocity-math" id="toc-velocity-math" class="nav-link" data-scroll-target="#velocity-math">Velocity Math</a></li>
+  </ul></li>
+  <li><a href="#hardware" id="toc-hardware" class="nav-link" data-scroll-target="#hardware">Hardware</a>
+  <ul class="collapse">
+  <li><a href="#schematic" id="toc-schematic" class="nav-link" data-scroll-target="#schematic">Schematic</a></li>
+  </ul></li>
+  <li><a href="#flowchart" id="toc-flowchart" class="nav-link" data-scroll-target="#flowchart">Flowchart</a></li>
+  <li><a href="#verification-calculations" id="toc-verification-calculations" class="nav-link" data-scroll-target="#verification-calculations">Verification &amp; Calculations</a>
+  <ul class="collapse">
+  <li><a href="#expected-counts-at-10-revs" id="toc-expected-counts-at-10-revs" class="nav-link" data-scroll-target="#expected-counts-at-10-revs">Expected Counts at ~10 rev/s</a></li>
+  <li><a href="#direction-check" id="toc-direction-check" class="nav-link" data-scroll-target="#direction-check">Direction Check</a></li>
+  <li><a href="#zero-velocity-check" id="toc-zero-velocity-check" class="nav-link" data-scroll-target="#zero-velocity-check">Zero-Velocity Check</a></li>
+  </ul></li>
+  <li><a href="#interrupts-vs.-polling" id="toc-interrupts-vs.-polling" class="nav-link" data-scroll-target="#interrupts-vs.-polling">Interrupts vs.&nbsp;Polling</a>
+  <ul class="collapse">
+  <li><a href="#why-interrupts-are-better" id="toc-why-interrupts-are-better" class="nav-link" data-scroll-target="#why-interrupts-are-better">Why Interrupts Are Better</a></li>
+  <li><a href="#the-polling-failure-point" id="toc-the-polling-failure-point" class="nav-link" data-scroll-target="#the-polling-failure-point">The Polling Failure Point</a></li>
+  </ul></li>
+  <li><a href="#time-spent" id="toc-time-spent" class="nav-link" data-scroll-target="#time-spent">Time Spent</a></li>
+  <li><a href="#ai-prototype-reflection" id="toc-ai-prototype-reflection" class="nav-link" data-scroll-target="#ai-prototype-reflection">AI Prototype &amp; Reflection</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Lab 5: Interrupts</h1>
+<h1 class="title">Lab 5: Interrupts — Quadrature Encoder Velocity on STM32L432KC</h1>
   <div class="quarto-categories">
     <div class="quarto-category">Labs</div>
   </div>
@@ -138,7 +198,7 @@ ul.task-list li input[type="checkbox"] {
 
 <div>
   <div class="description">
-    Use MCU to determine the speed of a motor by reading from a quadrature encoder using interrupts.
+    Measure motor speed (rev/s) and direction using EXTI interrupts on a quadrature encoder. A=PA6, B=PB4. ITM/SWO printf at ≥1 Hz.
   </div>
 </div>
 
@@ -155,7 +215,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 25, 2025</p>
+      <p class="date">October 9, 2025</p>
     </div>
   </div>
   
@@ -167,8 +227,179 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab, I configured an <strong>STM32L432KC</strong> to read a <strong>quadrature encoder</strong> on a brushed DC motor and compute <strong>angular velocity in rev/s</strong> and <strong>direction</strong>. The system updates the user at a rate of <strong>≥ 1 Hz</strong> via <strong>ITM/SWO <code>printf</code></strong> (no UART). The design uses <strong>external interrupts (EXTI)</strong> on <strong>both rising and falling edges</strong> of both quadrature channels (x4 decoding) to ensure it does not miss pulses at normal or high speeds. It also correctly reports a velocity of <strong>zero</strong> when the motor is stopped.</p>
+<section id="learning-objectives" class="level3">
+<h3 class="anchored" data-anchor-id="learning-objectives">Learning Objectives</h3>
+<ul>
+<li>Implement an <strong>interrupt-driven</strong> quadrature decoder that converts A/B transitions to signed ticks.</li>
+<li>Convert ticks to <strong>rev/s</strong> with a clean <span class="math inline">\(\Delta\text{ticks}/\Delta t\)</span> estimator and a 1 Hz output rate.</li>
+<li>Understand <strong>Gray-code</strong> transitions and why using x4 edge detection increases resolution.</li>
+<li>Compare <strong>interrupts vs.&nbsp;polling</strong> for high-speed signal processing and analyze the conditions for missing pulses.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">System Overview</h2>
+<ul>
+<li><strong>MCU:</strong> STM32L432KC (Cortex-M4F @ 80 MHz)</li>
+<li><strong>Encoder resolution:</strong> <span class="math inline">\(PPR_{\times1} = 408 \rightarrow CPR_{\times4} = 1632\)</span> counts per revolution</li>
+<li><strong>Pins (5 V tolerant):</strong>
+<ul>
+<li><strong>A → PA6</strong> (EXTI6, handled by <code>EXTI9_5_IRQHandler</code>)</li>
+<li><strong>B → PB4</strong> (EXTI4, handled by <code>EXTI4_IRQHandler</code>)</li>
+</ul></li>
+<li><strong>Interrupt config:</strong> Trigger on <strong>rising and falling</strong> edges for both channels A and B to achieve x4 decoding.</li>
+<li><strong>Time base:</strong> SysTick running at 1 kHz for a precise <span class="math inline">\(\Delta t\)</span> and 1 Hz reporting schedule.</li>
+<li><strong>Logging:</strong> ITM/SWO <code>printf</code> (with float print support enabled) and unbuffered output for reliability.</li>
+</ul>
+<section id="velocity-math" class="level3">
+<h3 class="anchored" data-anchor-id="velocity-math">Velocity Math</h3>
+<p>For a reporting window of duration <span class="math inline">\(\Delta t\)</span> (in seconds), the firmware computes the velocity as follows:</p>
+<p><span class="math display">\[\Delta\text{ticks} = \text{tick\_count}(t_2) - \text{tick\_count}(t_1)\]</span></p>
+<p><span class="math display">\[\text{revolutions} = \frac{\Delta\text{ticks}}{\text{CPR}_{\times4}}\]</span></p>
+<p><span class="math display">\[\text{rev/s} = \frac{\text{revolutions}}{\Delta t}\]</span></p>
+<p><strong>Direction</strong> is determined by the sign of <span class="math inline">\(\Delta\text{ticks}\)</span>: FWD if <span class="math inline">\((&gt;0)\)</span>, REV if <span class="math inline">\((&lt;0)\)</span>, and STILL if <span class="math inline">\((=0)\)</span> or no edges have been detected in the last 0.5 seconds.</p>
+<hr>
+</section>
+</section>
+<section id="hardware" class="level2">
+<h2 class="anchored" data-anchor-id="hardware">Hardware</h2>
+<section id="schematic" class="level3">
+<h3 class="anchored" data-anchor-id="schematic">Schematic</h3>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="general schematic for design">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/drw.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="general schematic for design">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: General Schematic.
+</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+</section>
+<section id="flowchart" class="level2">
+<h2 class="anchored" data-anchor-id="flowchart">Flowchart</h2>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="general schematic for design">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/flow.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="general schematic for design">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Code Flow.
+</figcaption>
+</figure>
+</div>
+<hr>
+</section>
+<section id="verification-calculations" class="level2">
+<h2 class="anchored" data-anchor-id="verification-calculations">Verification &amp; Calculations</h2>
+<section id="expected-counts-at-10-revs" class="level3">
+<h3 class="anchored" data-anchor-id="expected-counts-at-10-revs">Expected Counts at ~10 rev/s</h3>
+<p>With the motor’s true resolution of <span class="math inline">\(CPR_{\times4} = 1632\)</span>, we can predict the number of ticks generated per second at an angular velocity of <span class="math inline">\(\omega = 10\ \text{rev/s}\)</span>:</p>
+<p><span class="math display">\[\Delta\text{ticks}_{1s} \approx 10\ \text{rev/s} \cdot 1632\ \text{ticks/rev} = \boxed{16320\ \text{ticks/s}}\]</span></p>
+<p>A representative console output over a 1-second window would look like this:</p>
+<pre><code>vel=10.00490 rev/s  dir=FWD  (dticks=16328)</code></pre>
+<p><strong>Check:</strong> We can verify this measurement by plugging the tick count back into our formula: <span class="math display">\[\text{rps} = \frac{16328 \text{ ticks}}{1632 \text{ ticks/rev}} \div 1.000\ \text{s} = 10.0049\ \text{rev/s}\]</span> This result perfectly matches the calculated velocity, confirming the system’s accuracy.</p>
+</section>
+<section id="direction-check" class="level3">
+<h3 class="anchored" data-anchor-id="direction-check">Direction Check</h3>
+<ul>
+<li><strong>FWD</strong> rotation produces the Gray-code sequence <strong>00→01→11→10→00</strong>, which the ISR’s lookup table correctly scores as <strong>+1</strong> per edge.</li>
+<li><strong>REV</strong> rotation traverses the cycle in the opposite order, resulting in a score of <strong>−1</strong> per edge.</li>
+<li>The console output correctly toggles between <code>dir=FWD</code> and <code>dir=REV</code> when the motor shaft is reversed by hand.</li>
+</ul>
+</section>
+<section id="zero-velocity-check" class="level3">
+<h3 class="anchored" data-anchor-id="zero-velocity-check">Zero-Velocity Check</h3>
+<p>If <strong>no valid encoder edges</strong> are detected for 0.5 seconds, the main loop forces <code>rps=0.0</code> and <code>dir=STILL</code>. This was verified by stopping the motor; the status line correctly updated to zero within the next print cycle.</p>
+<hr>
+</section>
+</section>
+<section id="interrupts-vs.-polling" class="level2">
+<h2 class="anchored" data-anchor-id="interrupts-vs.-polling">Interrupts vs.&nbsp;Polling</h2>
+<p>For high-frequency signal processing like reading a quadrature encoder, an <strong>interrupt-driven approach is overwhelmingly superior</strong> to polling. Interrupts provide efficiency, reliability, and real-time responsiveness that polling cannot match.</p>
+<p>An easy analogy is checking your mailbox.</p>
+<ul>
+<li><strong>Polling</strong> is like walking out to the curb every 5 minutes to see if the mail has arrived. It’s repetitive, wastes your time, and you might miss the mail truck if you happen to be busy inside when it drives by.</li>
+<li><strong>Interrupts</strong> are like having a doorbell. You can do other things, and the mail carrier rings the bell the moment the mail is delivered. You respond immediately and efficiently, without wasting any effort.</li>
+</ul>
+<section id="why-interrupts-are-better" class="level3">
+<h3 class="anchored" data-anchor-id="why-interrupts-are-better">Why Interrupts Are Better</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Polling</th>
+<th style="text-align: left;">Interrupt-Driven</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>CPU Usage</strong></td>
+<td style="text-align: left;"><strong>Very High</strong>. The CPU is stuck in a tight loop, constantly checking GPIO states. This consumes 100% of its processing cycles, even when the motor is stopped.</td>
+<td style="text-align: left;"><strong>Very Low</strong>. The CPU can perform other tasks or enter a low-power sleep mode. It only consumes cycles when an actual edge event occurs.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Responsiveness</strong></td>
+<td style="text-align: left;"><strong>Poor &amp; Unpredictable</strong>. Latency depends on the polling loop’s execution time (<span class="math inline">\(t_{\text{loop}}\)</span>). If the loop contains other tasks, the response to an edge can be significantly delayed.</td>
+<td style="text-align: left;"><strong>Excellent &amp; Deterministic</strong>. The hardware detects the edge and vectors to the ISR within a few clock cycles. The latency is minimal and highly predictable.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Reliability</strong></td>
+<td style="text-align: left;"><strong>Low</strong>. Polling is prone to missing events. If the time between edges (<span class="math inline">\(T_{\text{edge}}\)</span>) is less than the loop time (<span class="math inline">\(T_{\text{edge}} &lt; t_{\text{loop}}\)</span>), the system will fail to count edges, leading to incorrect velocity and position data.</td>
+<td style="text-align: left;"><strong>High</strong>. The EXTI hardware latches events. As long as the ISR is short enough to execute before the <em>next</em> edge arrives, no events will be missed. This makes the system robust even at very high speeds.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>System Design</strong></td>
+<td style="text-align: left;"><strong>Complex &amp; Brittle</strong>. Integrating other tasks with a polling loop is difficult and often leads to tangled, hard-to-maintain code. It forces a compromise between responsiveness and functionality.</td>
+<td style="text-align: left;"><strong>Clean &amp; Scalable</strong>. Promotes an event-driven architecture where time-critical tasks (ISRs) are cleanly separated from less critical ones (main loop). This is more modular and easier to build upon.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="the-polling-failure-point" class="level3">
+<h3 class="anchored" data-anchor-id="the-polling-failure-point">The Polling Failure Point</h3>
+<p>A polling-based system fails when the CPU cannot check the input pins fast enough to catch every state change. For our motor with <span class="math inline">\(CPR_{\times4} = 1632\)</span> spinning at <span class="math inline">\(\omega = 10\ \text{rev/s}\)</span>, the time between consecutive edges becomes extremely short:</p>
+<p><span class="math display">\[T_{\text{edge}} = \frac{1}{\text{edges/s}} = \frac{1}{\omega \cdot \text{CPR}_{\times4}} = \frac{1}{10 \cdot 1632} = \frac{1}{16320} \approx 61.3\ \mu\text{s}\]</span></p>
+<p>If the polling loop takes longer than <strong>61.3 microseconds</strong> to complete—a very likely scenario if the CPU is doing <em>anything</em> else—it will inevitably start missing encoder ticks. Our interrupt-based design, with a hardware-triggered, constant-time ISR, is far faster and therefore <strong>never missed pulses</strong> during testing at any speed.</p>
+<hr>
+</section>
+</section>
+<section id="time-spent" class="level2">
+<h2 class="anchored" data-anchor-id="time-spent">Time Spent</h2>
+<p><strong>8 hours</strong>.</p>
+<hr>
+</section>
+<section id="ai-prototype-reflection" class="level2">
+<h2 class="anchored" data-anchor-id="ai-prototype-reflection">AI Prototype &amp; Reflection</h2>
+<p><strong>Prompt used (example):</strong> “Write EXTI interrupt handlers for a quadrature encoder on an STM32L432KC. Which 5 V-tolerant pins can map cleanly to EXTI, and how do I implement x4 decoding using a lookup table in the ISR?”</p>
+<p><strong>Experience:</strong></p>
+<ul>
+<li>The LLM rapidly produced a working <strong>skeleton</strong> for the EXTI configuration, handlers, and suitable pin choices.</li>
+<li>I refined the initial code to use pins <strong>PA6/PB4</strong>, corrected the <strong>EXTICR</strong> register configuration, and implemented a more robust printing mechanism via <strong>ITM <code>_write</code></strong> (matching the class-provided snippet).</li>
+<li>The LLM was most helpful as a <strong>sounding board</strong> for establishing the correct <strong>peripheral initialization order</strong> (RCC → GPIO → SYSCFG/EXTI → NVIC) and for explaining the logic behind a <strong>lookup-table decoder</strong>.</li>
+<li>The biggest “gotcha” it didn’t initially catch was that <strong>float <code>printf</code> support</strong> must be explicitly enabled in the project settings; otherwise, SWO prints appear as gibberish. Once this was enabled, the output was clean.</li>
+</ul>
+<p><strong>Takeaways for using an LLM effectively:</strong></p>
+<ul>
+<li><strong>Be specific:</strong> State the <strong>exact MCU, pins, and peripheral constraints</strong> (e.g., “5 V-tolerant only”, “A=PA6, B=PB4”).</li>
+<li><strong>Be explicit:</strong> Ask for specific features like <strong>“both rising and falling edges”</strong> and <strong>“x4 decoding”</strong>.</li>
+<li><strong>Iterate:</strong> Request a <strong>minimal working version</strong> first, then build upon it for reliability (e.g., add a zero-velocity rule, use unbuffered stdout).</li>
+</ul>
+<hr>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
