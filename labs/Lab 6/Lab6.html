@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Santiago Burgos-Fallon">
-<meta name="dcterms.date" content="2025-10-02">
-<meta name="description" content="An internet-accessible device to control an onboard LED and measure ambient temperature">
+<meta name="dcterms.date" content="2025-10-27">
+<meta name="description" content="STM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)">
 
-<title>Lab 6: The Internet of Things and Serial Peripheral Interface – E155 Portfolio</title>
+<title>Lab 6: IoT Web Portal &amp; SPI Temperature Sensor (DS1722) – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -122,15 +122,36 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#system-overview" id="toc-system-overview" class="nav-link" data-scroll-target="#system-overview">System Overview</a>
+  <ul class="collapse">
+  <li><a href="#ds1722-essentials-what-finally-made-it-work" id="toc-ds1722-essentials-what-finally-made-it-work" class="nav-link" data-scroll-target="#ds1722-essentials-what-finally-made-it-work">DS1722 Essentials (what finally made it work)</a></li>
+  <li><a href="#spi-driver-cmsis" id="toc-spi-driver-cmsis" class="nav-link" data-scroll-target="#spi-driver-cmsis">SPI Driver (CMSIS)</a></li>
+  <li><a href="#esp8266-request-protocol" id="toc-esp8266-request-protocol" class="nav-link" data-scroll-target="#esp8266-request-protocol">ESP8266 Request Protocol</a></li>
+  </ul></li>
+  <li><a href="#web-page-ui" id="toc-web-page-ui" class="nav-link" data-scroll-target="#web-page-ui">Web Page / UI</a>
+  <ul class="collapse">
+  <li><a href="#html-generation-notes" id="toc-html-generation-notes" class="nav-link" data-scroll-target="#html-generation-notes">HTML Generation Notes</a></li>
+  </ul></li>
+  <li><a href="#logic-analyzer-capture" id="toc-logic-analyzer-capture" class="nav-link" data-scroll-target="#logic-analyzer-capture">Logic Analyzer Capture</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#time-spent" id="toc-time-spent" class="nav-link" data-scroll-target="#time-spent">Time Spent</a></li>
+  <li><a href="#known-limitations-future-work" id="toc-known-limitations-future-work" class="nav-link" data-scroll-target="#known-limitations-future-work">Known Limitations / Future Work</a></li>
+  <li><a href="#ai-prototype" id="toc-ai-prototype" class="nav-link" data-scroll-target="#ai-prototype">AI Prototype</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Lab 6: The Internet of Things and Serial Peripheral Interface</h1>
+<h1 class="title">Lab 6: IoT Web Portal &amp; SPI Temperature Sensor (DS1722)</h1>
   <div class="quarto-categories">
     <div class="quarto-category">Labs</div>
   </div>
@@ -138,7 +159,7 @@ ul.task-list li input[type="checkbox"] {
 
 <div>
   <div class="description">
-    An internet-accessible device to control an onboard LED and measure ambient temperature
+    STM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)
   </div>
 </div>
 
@@ -155,7 +176,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 2, 2025</p>
+      <p class="date">October 27, 2025</p>
     </div>
   </div>
   
@@ -167,8 +188,115 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab I built a small <strong>IoT device</strong>: an STM32L432KC microcontroller talks SPI to a <strong>DS1722</strong> digital thermometer and UART to an <strong>ESP8266</strong> that serves a minimal HTML page. The webpage lets a user <strong>toggle an LED</strong>, <strong>view the temperature</strong>, and <strong>select the sensor resolution (8–12 bits)</strong>. I wrote a CMSIS-only SPI driver, verified the serial links with a <strong>logic analyzer</strong>, and debugged the DS1722 configuration so higher-resolution modes update correctly.</p>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">System Overview</h2>
+<p><strong>Data path.</strong> DS1722 →(SPI)→ MCU →(UART)→ ESP8266 →(Wi-Fi AP)→ browser. <strong>Control path.</strong> Browser requests <code>/ledon</code>, <code>/ledoff</code>, or <code>/res{8..12}</code> → ESP forwards <code>/REQ:...</code> to MCU → MCU toggles LED and/or updates DS1722 configuration → MCU renders fresh HTML → ESP serves it.</p>
+<p><strong>General Schematic.</strong> <img src="images/lab6.jpeg" id="fig-block" class="img-fluid" style="width:90.0%" data-align="center" alt="general schematic for design"></p>
+<section id="ds1722-essentials-what-finally-made-it-work" class="level3">
+<h3 class="anchored" data-anchor-id="ds1722-essentials-what-finally-made-it-work">DS1722 Essentials (what finally made it work)</h3>
+<ul>
+<li><strong>Config register layout:</strong> I map <strong>R2:R1:R0 to bits 3:2:1</strong> and keep <strong>SD=0</strong> for continuous conversions.</li>
+<li><strong>I/O addresses:</strong> read <code>0x00</code>, write <code>0x80</code>.</li>
+<li><strong>Data format:</strong> left-justified 12-bit signed; <strong>1 LSB = 1/256 °C</strong>:</li>
+<li><strong>Expected CONFIG hex (sanity checks):</strong> 8-bit → <code>0xE0</code>, 9-bit → <code>0xE2</code>, 10-bit → <code>0xE4</code>, 11-bit → <code>0xE6</code>, 12-bit → <code>0xE8</code>.</li>
+<li><strong>Conversion time increases with resolution</strong> (≈75 ms <span class="citation" data-cites="8-bit">@8-bit</span> up to ≈1.2 s <span class="citation" data-cites="12-bit">@12-bit</span>). The registers hold the <strong>last completed value</strong> until the new conversion finishes; that’s why higher resolutions appear “slower.”</li>
+</ul>
+</section>
+<section id="spi-driver-cmsis" class="level3">
+<h3 class="anchored" data-anchor-id="spi-driver-cmsis">SPI Driver (CMSIS)</h3>
+<ul>
+<li>Initializes SPI1 with chosen prescaler, <strong>CPHA=1</strong>, software-managed NSS.</li>
+<li><strong>Manual CE</strong> is asserted <strong>HIGH</strong> before sending the address and stays high through the data byte(s).</li>
+<li>Blocking 8-bit transfers via <code>DR</code> with <code>TXE/RXNE</code> polling.</li>
+</ul>
+</section>
+<section id="esp8266-request-protocol" class="level3">
+<h3 class="anchored" data-anchor-id="esp8266-request-protocol">ESP8266 Request Protocol</h3>
+<ul>
+<li><p>ESP sends a single line like:</p>
+<pre><code>/REQ:ledon\n
+/REQ:          (for root /)
+/REQ:res12</code></pre></li>
+<li><p>MCU parses the token, updates LED or DS1722 config, then returns a <strong>complete HTML page</strong>. The ESP forwards it to the browser once it sees <code>&lt;/html&gt;</code> (or after a 200 ms idle gap).</p></li>
+</ul>
+</section>
+</section>
+<section id="web-page-ui" class="level2">
+<h2 class="anchored" data-anchor-id="web-page-ui">Web Page / UI</h2>
+<ul>
+<li><strong>Controls:</strong> LED <strong>On/Off</strong> buttons; <strong>resolution</strong> buttons (8/9/10/11/12-bit).</li>
+<li><strong>Telemetry:</strong> current temperature in °C and °F; current <strong>CONFIG</strong> byte (for debug).</li>
+<li>Minimal CSS for legibility.</li>
+</ul>
+<section id="html-generation-notes" class="level3">
+<h3 class="anchored" data-anchor-id="html-generation-notes">HTML Generation Notes</h3>
+<ul>
+<li>The MCU emits the HTTP header and then a single HTML document (no AJAX).</li>
+<li>Each button click triggers a fresh page render (stateless).</li>
+<li>On a <strong>resolution change</strong>, the page reads CONFIG back and displays it so I can confirm the write took effect.</li>
+</ul>
+</section>
+</section>
+<section id="logic-analyzer-capture" class="level2">
+<h2 class="anchored" data-anchor-id="logic-analyzer-capture">Logic Analyzer Capture</h2>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="logic trace" data-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/ClartiagoFile.png" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="logic trace">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Logic Trace.
+</figcaption>
+</figure>
+</div>
+<p><strong>What to see:</strong></p>
+<ul>
+<li><strong>CONFIG write:</strong> CE goes <strong>HIGH</strong>, MOSI sends <code>0x80</code> (write), then the data byte (e.g., <code>0xE8</code> for 12-bit). <strong>SCK edges</strong> align with CPHA=1.</li>
+<li><strong>Temperature read:</strong> CE HIGH, MOSI <code>0x01</code> (LSB addr) then one dummy byte; MISO shows LSB. Repeat for MSB (<code>0x02</code>).</li>
+<li>Idles return <strong>MISO high</strong></li>
+</ul>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<ul>
+<li>LED control from the webpage works reliably.</li>
+<li>Temperature displays in <strong>°C and °F</strong>, updates on each refresh.</li>
+<li><strong>Resolution switching 8→12 bits works</strong>; CONFIG shows the expected hex.</li>
+<li>At higher resolutions the value updates more slowly (by design); the last reading is held until the new conversion completes—consistent with the datasheet.</li>
+</ul>
+</section>
+<section id="time-spent" class="level2">
+<h2 class="anchored" data-anchor-id="time-spent">Time Spent</h2>
+<p><strong>~14 hours</strong></p>
+</section>
+<section id="known-limitations-future-work" class="level2">
+<h2 class="anchored" data-anchor-id="known-limitations-future-work">Known Limitations / Future Work</h2>
+<ul>
+<li>No auto-refresh; a timed meta-refresh or small JS would update values without clicks.</li>
+<li>Could add an on-page indicator for “conversion in progress” at higher resolutions.</li>
+<li>Burst read (MSB+LSB under one CE) would reduce overhead slightly.</li>
+</ul>
+</section>
+<section id="ai-prototype" class="level2">
+<h2 class="anchored" data-anchor-id="ai-prototype">AI Prototype</h2>
+<p><strong>Prompt 1 (UI):</strong></p>
+<blockquote class="blockquote">
+<p><em>I’m making a web portal to interface with a temperature sensor. Create an HTML page that looks good and is intuitive to show the temperature, control an LED, and change the precision of the readout.</em></p>
+</blockquote>
+<p><strong>What happened.</strong> The LLM produced a clean, semantic HTML/CSS snippet with buttons for <strong>LED on/off</strong> and <strong>resolution</strong> (8–12). It assumed typical REST paths (<code>/ledon</code>, <code>/res12</code>) which matched the lab’s <code>/REQ:...</code> pass-through, so I only had to paste the <code>&lt;body&gt;</code> into my MCU string generation. Styling was lightweight and rendered fine on mobile. <strong>Takeaway:</strong> For <strong>front-end scaffolding</strong>, the LLM sped things up and required minimal edits.</p>
+<p><strong>Prompt 2 (SPI function):</strong></p>
+<blockquote class="blockquote">
+<p><em>Write me a C function to carry out a SPI transaction to retrieve a temperature reading from a DS1722 sensor. Make use of CMSIS libraries for the STM32L432KC.</em></p>
+</blockquote>
+<p><strong>What happened.</strong> The first draft mixed HAL calls and got <strong>CPHA</strong> wrong, and it didn’t keep <strong>CE asserted</strong> across address+data. It also read only one byte (dropping either MSB or LSB). After I corrected to <strong>CMSIS-only</strong>, enforced <strong>CPHA=1</strong>, kept <strong>CE high</strong>, and read <strong>both bytes</strong>, the code worked. The LLM was <strong>useful as a skeleton</strong>, but <strong>device-specific details</strong> (register map, timing, bit fields) needed careful verification against the datasheet and on the logic analyzer.</p>
+<p><strong>Overall:</strong> LLMs handled <strong>UI boilerplate</strong> very well. For <strong>low-level peripheral code</strong>, they were helpful to outline <strong>structure</strong>, but <strong>hardware-exact details</strong> still required my domain knowledge and lab instrumentation to validate and fix.</p>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

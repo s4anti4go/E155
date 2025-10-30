@@ -6,11 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Santiago Burgos-Fallon">
-<meta name="dcterms.date" content="2025-10-09">
-<meta name="description" content="A hardware accelerator to perform 128-bit AES encryption">
 
-<title>Lab 7: The Advanced Encryption Standard – E155 Portfolio</title>
+<title>lab7 – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -122,53 +119,279 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#system-overview" id="toc-system-overview" class="nav-link" data-scroll-target="#system-overview">System Overview</a>
+  <ul class="collapse">
+  <li><a href="#spi-interface-fpga-side" id="toc-spi-interface-fpga-side" class="nav-link" data-scroll-target="#spi-interface-fpga-side">SPI Interface (FPGA side)</a></li>
+  </ul></li>
+  <li><a href="#design-approach" id="toc-design-approach" class="nav-link" data-scroll-target="#design-approach">Design Approach</a>
+  <ul class="collapse">
+  <li><a href="#datapath" id="toc-datapath" class="nav-link" data-scroll-target="#datapath">Datapath</a></li>
+  <li><a href="#controller-fsm" id="toc-controller-fsm" class="nav-link" data-scroll-target="#controller-fsm">Controller (FSM)</a></li>
+  <li><a href="#key-expansion-aes-128" id="toc-key-expansion-aes-128" class="nav-link" data-scroll-target="#key-expansion-aes-128">Key Expansion (AES-128)</a></li>
+  </ul></li>
+  <li><a href="#implementation-notes" id="toc-implementation-notes" class="nav-link" data-scroll-target="#implementation-notes">Implementation Notes</a></li>
+  <li><a href="#test-plan" id="toc-test-plan" class="nav-link" data-scroll-target="#test-plan">Test Plan</a>
+  <ul class="collapse">
+  <li><a href="#functional-vectors-core-tb" id="toc-functional-vectors-core-tb" class="nav-link" data-scroll-target="#functional-vectors-core-tb">Functional Vectors (Core TB)</a></li>
+  <li><a href="#end-to-end-spi-spi-tb" id="toc-end-to-end-spi-spi-tb" class="nav-link" data-scroll-target="#end-to-end-spi-spi-tb">End-to-End SPI (SPI TB)</a></li>
+  <li><a href="#logic-analyzer-hardware" id="toc-logic-analyzer-hardware" class="nav-link" data-scroll-target="#logic-analyzer-hardware">Logic Analyzer (Hardware)</a></li>
+  </ul></li>
+  <li><a href="#mcu-fpga-interface" id="toc-mcu-fpga-interface" class="nav-link" data-scroll-target="#mcu-fpga-interface">MCU ↔︎ FPGA Interface</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#time-spent" id="toc-time-spent" class="nav-link" data-scroll-target="#time-spent">Time Spent</a></li>
+  <li><a href="#known-limitations-future-work" id="toc-known-limitations-future-work" class="nav-link" data-scroll-target="#known-limitations-future-work">Known Limitations / Future Work</a></li>
+  <li><a href="#ai-prototype" id="toc-ai-prototype" class="nav-link" data-scroll-target="#ai-prototype">AI Prototype</a>
+  <ul class="collapse">
+  <li><a href="#prototype-a-with-spec-fips-197-available" id="toc-prototype-a-with-spec-fips-197-available" class="nav-link" data-scroll-target="#prototype-a-with-spec-fips-197-available">Prototype A — With Spec (FIPS-197 available)</a></li>
+  <li><a href="#prototype-b-without-spec-no-aes-mention" id="toc-prototype-b-without-spec-no-aes-mention" class="nav-link" data-scroll-target="#prototype-b-without-spec-no-aes-mention">Prototype B — Without Spec (No “AES” Mention)</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Lab 7: The Advanced Encryption Standard</h1>
-  <div class="quarto-categories">
-    <div class="quarto-category">Labs</div>
-  </div>
-  </div>
 
-<div>
-  <div class="description">
-    A hardware accelerator to perform 128-bit AES encryption
-  </div>
+
+
+<hr>
+<p>title: “Lab 7: AES-128 Hardware Accelerator &amp; SPI MCU Link” description: “Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer” author: “Santiago Burgos-Fallon” date: “10/30/25” categories: -Labs draft: false</p>
+<hr>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this lab I implemented a <strong>128-bit AES encryption accelerator</strong> in SystemVerilog and wrapped it with a simple <strong>SPI shift interface</strong> so an MCU can send a key and plaintext and read back the ciphertext. The AES core is an <strong>iterative, multi-cycle</strong> design (1 round per few cycles) sized to the FPGA’s resources. I verified function first in simulation (core TB, then SPI TB), then used a <strong>logic analyzer</strong> to confirm timing and bit ordering on the hardware link.</p>
+<p><strong>Learning outcomes:</strong> specification-driven design, datapath + controller partitioning, MCU↔︎FPGA interface timing, structured debug with simulation + LA, and a taste of hardware acceleration.</p>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">System Overview</h2>
+<p><strong>Top-level flow.</strong> MCU →(SPI: 256 SCK in)→ FPGA (<strong>aes_spi</strong>) → <strong>aes_core</strong> → ciphertext latched →(SPI: 128 SCK out)→ MCU, which compares against a known test vector.</p>
+<p><strong>AES mode.</strong> AES-128, <strong>Nr = 10</strong> rounds (Nk = 4, Nb = 4). The round sequence is:</p>
+<ul>
+<li>Initial <strong>AddRoundKey</strong></li>
+<li>Rounds 1–9: <strong>SubBytes → ShiftRows → MixColumns → AddRoundKey</strong></li>
+<li>Round 10: <strong>SubBytes → ShiftRows → AddRoundKey</strong> (no MixColumns)</li>
+</ul>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="block diagram schematic for design" data-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/blk.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="block diagram schematic for design">
 </div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: block diagram Schematic.
+</figcaption>
+</figure>
+</div>
+<section id="spi-interface-fpga-side" class="level3">
+<h3 class="anchored" data-anchor-id="spi-interface-fpga-side">SPI Interface (FPGA side)</h3>
+<ul>
+<li>Mode <strong>CPOL=0/CPHA=0</strong>: sample <code>sdi</code> on <strong>posedge SCK</strong>; update <code>sdo</code> on <strong>negedge SCK</strong>.</li>
+<li><strong>Shift-in phase (256 edges):</strong> <code>{plaintext, key}</code> MSB-first.</li>
+<li><strong>Compute phase:</strong> <code>load</code> deasserted; core runs ~11 fabric clocks and raises <code>done</code>.</li>
+<li><strong>Shift-out phase (128 edges):</strong> cipher MSB-first; the <strong>first MSB</strong> is driven as soon as <code>done</code> rises (before next SCK edge), then <code>sdo</code> updates on negedges.</li>
+</ul>
+<p><strong>Insert logic-analyzer timing diagram here.</strong></p>
+</section>
+</section>
+<section id="design-approach" class="level2">
+<h2 class="anchored" data-anchor-id="design-approach">Design Approach</h2>
+<section id="datapath" class="level3">
+<h3 class="anchored" data-anchor-id="datapath">Datapath</h3>
+<ul>
+<li><strong>State register (128b)</strong> holds the current AES state.</li>
+<li><strong>RoundKey register (128b)</strong> holds the active round key.</li>
+<li><strong>SubBytes</strong>: 16× <code>sbox_sync</code> (1-cycle, uses BRAM; <code>sbox.txt</code> ROM init).</li>
+<li><strong>ShiftRows</strong>: hard-wired byte permutes.</li>
+<li><strong>MixColumns</strong>: 4× column units with GF(2^8) multiply-by-x helper (<code>galoismult</code> with poly <code>0x1B</code>).</li>
+<li><strong>AddRoundKey</strong>: 4× 32-bit XORs.</li>
+</ul>
+</section>
+<section id="controller-fsm" class="level3">
+<h3 class="anchored" data-anchor-id="controller-fsm">Controller (FSM)</h3>
+<p>States (conceptually):</p>
+<ol type="1">
+<li><strong>IDLE</strong> — wait for <code>load</code>; stage plaintext/key for initial ARK.</li>
+<li><strong>INIT_ARK</strong> — compute <code>state = plaintext ^ key</code>.</li>
+<li><strong>ROUND_PREP</strong> — present <code>state</code> to SubBytes; keyexp sees <code>{round, rk}</code>.</li>
+<li><strong>SUB_ISSUE / SUB_CAPTURE</strong> — burn 1 cycle for <code>sbox_sync</code>, latch <code>SubBytes</code>.</li>
+<li><strong>SR_STAGE</strong> — apply ShiftRows.</li>
+<li><strong>MC_STAGE</strong> — apply MixColumns (skip when <code>round==10</code>).</li>
+<li><strong>ARK_STAGE / ARK_FINAL</strong> — XOR with next round key; increment round; on final, latch <code>cyphertext</code> and assert <code>done</code>.</li>
+<li><strong>FINISH</strong> — hold <code>done</code> high until next <code>load</code>.</li>
+</ol>
+<p><strong>Insert FSM state diagram here.</strong></p>
+</section>
+<section id="key-expansion-aes-128" class="level3">
+<h3 class="anchored" data-anchor-id="key-expansion-aes-128">Key Expansion (AES-128)</h3>
+<ul>
+<li>Implements <strong>RotWord → SubWord → XOR with Rcon</strong> on the last word, then chained XORs to form the next 128-bit round key.</li>
+<li><strong>Rcon</strong> sequence uses <code>{0x01, 0x02, 0x04, …, 0x1B, 0x36}</code> for rounds 1..10.</li>
+<li>SubWord uses the same <strong>sbox_sync</strong> (1-cycle).</li>
+</ul>
+<p><strong>Insert KeyExpansion schematic snippet here.</strong></p>
+</section>
+</section>
+<section id="implementation-notes" class="level2">
+<h2 class="anchored" data-anchor-id="implementation-notes">Implementation Notes</h2>
+<ul>
+<li>The <strong>iterative core</strong> fits comfortably; the S-box is the dominant area (maps to BRAM/LUT RAM depending on tool inference).</li>
+<li>Because <strong>sbox_sync</strong> is synchronous, I inserted an explicit <strong>one-cycle gap</strong> between presenting bytes and capturing the substituted result.</li>
+<li>The <strong>final round</strong> bypasses MixColumns via a small mux on the ARK input.</li>
+<li>The <strong>SPI</strong> module double-buffers the outbound ciphertext so <code>sdo</code> is valid <strong>immediately</strong> on <code>done</code> and then continues shifting on SCK negedges.</li>
+</ul>
+</section>
+<section id="test-plan" class="level2">
+<h2 class="anchored" data-anchor-id="test-plan">Test Plan</h2>
+<section id="functional-vectors-core-tb" class="level3">
+<h3 class="anchored" data-anchor-id="functional-vectors-core-tb">Functional Vectors (Core TB)</h3>
+<ul>
+<li><p><strong>NIST AES-128 example</strong> (Appendix A/B):</p>
+<ul>
+<li><code>key = 2b7e151628aed2a6abf7158809cf4f3c</code></li>
+<li><code>plaintext = 3243f6a8885a308d313198a2e0370734</code></li>
+<li><strong>Expected</strong> <code>ciphertext = 3925841d02dc09fbdc118597196a0b32</code></li>
+</ul></li>
+<li><p>The core TB drives <code>load</code>, clocks through 10 rounds, and checks <code>done</code> and the final value.</p></li>
+</ul>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="block diagram schematic for design" data-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/core waves.png" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="block diagram schematic for design">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: core wave forms.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="end-to-end-spi-spi-tb" class="level3">
+<h3 class="anchored" data-anchor-id="end-to-end-spi-spi-tb">End-to-End SPI (SPI TB)</h3>
+<ul>
+<li>Shifts <code>{plaintext, key}</code> MSB-first on <code>sdi</code> with <strong>256 posedges</strong>.</li>
+<li>Deasserts <code>load</code> and waits for <code>done</code>.</li>
+<li>Samples <code>sdo</code> on <strong>posedge SCK</strong> while I update it on <strong>negedge</strong> (128 cycles).</li>
+<li>Compares the assembled 128-bit value with the golden.</li>
+<li>On success, the TB prints “<strong>Testbench ran successfully</strong>” and calls <code>$stop</code> to allow wave inspection.</li>
+</ul>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div id="fig-7seg-waves" class="quarto-float quarto-figure quarto-figure-center anchored" alt="spi waveform.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-7seg-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/spi waves.png" class="img-fluid figure-img" alt="spi waveform.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-7seg-waves-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Spi waves.
+</figcaption>
+</figure>
+</div>
+</div><div class="column" style="width:40%;">
+<div id="fig-7seg-log" class="quarto-float quarto-figure quarto-figure-center anchored" alt="all pass.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-7seg-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/spi output.png" class="img-fluid figure-img" alt="all pass.">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-7seg-log-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Spi transcript.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="logic-analyzer-hardware" class="level3">
+<h3 class="anchored" data-anchor-id="logic-analyzer-hardware">Logic Analyzer (Hardware)</h3>
+<ul>
+<li><p>Probes: <code>SCK</code>, <code>SDI</code>, <code>SDO</code>, <code>CE/NSS</code>, optionally <code>done</code> on a GPIO, and a few FSM state bits via spare pins.</p></li>
+<li><p><strong>What to verify:</strong></p>
+<ul>
+<li>256 SCK edges during shift-in, 128 during shift-out.</li>
+<li><code>SDO</code> <strong>changes on negedge</strong>, sampled on posedge.</li>
+<li>First MSB presented right when <code>done</code> rises.</li>
+<li>Bit order is <strong>MSB-first</strong> for both directions.</li>
+</ul></li>
+</ul>
+<p><strong>Insert on-board capture here.</strong></p>
+</section>
+</section>
+<section id="mcu-fpga-interface" class="level2">
+<h2 class="anchored" data-anchor-id="mcu-fpga-interface">MCU ↔︎ FPGA Interface</h2>
+<ul>
+<li><p>The provided <code>lab7.c</code> drives the SPI transaction and compares the ciphertext locally. No changes needed as long as:</p>
+<ul>
+<li>CPOL/CPHA = <strong>0/0</strong> (match FPGA).</li>
+<li><strong>NSS/CE</strong> held active during each continuous shift window.</li>
+<li>Bit order <strong>MSB-first</strong>.</li>
+</ul></li>
+<li><p>On success, the MCU prints a pass banner and can toggle a status LED.</p></li>
+</ul>
+<p><strong>Insert MCU console screenshot here.</strong></p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<ul>
+<li><strong>Core TB:</strong> passes the NIST vector.</li>
+<li><strong>SPI TB:</strong> passes end-to-end; ciphertext matches.</li>
+<li><strong>Hardware LA:</strong> edge phasing, counts, and MSB-first ordering match expectations.</li>
+<li>The iterative design meets timing at the board’s default fabric clock (internal LF/HS oscillator or system clock; I used the on-board oscillator block).</li>
+</ul>
+</section>
+<section id="time-spent" class="level2">
+<h2 class="anchored" data-anchor-id="time-spent">Time Spent</h2>
+<p>~<strong>20 hours</strong> .</p>
+</section>
+<section id="known-limitations-future-work" class="level2">
+<h2 class="anchored" data-anchor-id="known-limitations-future-work">Known Limitations / Future Work</h2>
+<ul>
+<li>Current core is <strong>encrypt-only</strong>; no decryption path.</li>
+<li>One round per several cycles; could <strong>pipeline</strong> rounds for higher throughput (at area cost).</li>
+<li>Add <strong>AXI-lite</strong> or memory-mapped interface for queued requests.</li>
+<li>Parameterize for <strong>AES-192/256</strong> key sizes.</li>
+</ul>
+<p><strong>Schematic standards</strong>: labeled pins/parts/values, junction dots, left-to-right flow, neat layout, title block. <strong>HDL standards</strong>: one module/file, descriptive names, comments, clear hierarchy, individual module TBs, include TB outputs in report.</p>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="general diagram schematic for design" data-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/scm.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="general diagram schematic for design">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: general schematic
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="ai-prototype" class="level2">
+<h2 class="anchored" data-anchor-id="ai-prototype">AI Prototype</h2>
+<section id="prototype-a-with-spec-fips-197-available" class="level3">
+<h3 class="anchored" data-anchor-id="prototype-a-with-spec-fips-197-available">Prototype A — With Spec (FIPS-197 available)</h3>
+<p><strong>Prompt.</strong> <em>“Write SystemVerilog HDL to implement the KeyExpansion logic described in the FIPS-197 uploaded document. The module should be purely combinational, using the previous key and current round number to calculate the next key. Assume other required modules (SubWord and RotWord) are already implemented.”</em></p>
+<p><strong>Outcome (what happened).</strong> The LLM produced a clean combinational <code>keyexpansion</code> with:</p>
+<ul>
+<li>Correct <strong>Rcon</strong> mapping for rounds 1..10.</li>
+<li><code>RotWord</code> then <code>SubWord</code> on <code>w3</code>, XOR chain <code>w0'..w3'</code>.</li>
+<li>Proper port widths and MSB-first word ordering.</li>
+</ul>
+<p><strong>Analysis.</strong> It synthesized immediately. Because my in-lab design uses <strong>synchronous</strong> <code>SubWord</code> (via <code>sbox_sync</code>), I swapped the prototype’s pure-comb <code>SubWord</code> call for my existing registered version and inserted one holding cycle in the controller. The generated structure matched FIPS-197, so functional results were identical.</p>
+</section>
+<section id="prototype-b-without-spec-no-aes-mention" class="level3">
+<h3 class="anchored" data-anchor-id="prototype-b-without-spec-no-aes-mention">Prototype B — Without Spec (No “AES” Mention)</h3>
+<p><strong>Prompt.</strong> <em>(Rephrased, no “AES” terms; uses the provided abstract pseudocode with <code>module1</code>, <code>module2</code>, <code>Rcon</code> and loop unrolling instructions.)</em></p>
+<p><strong>Outcome (what happened).</strong> The LLM generated a module that:</p>
+<ul>
+<li>Preserved the <strong>word-wise recurrence</strong> and XOR chain.</li>
+<li>Exposed a param for <strong>Nk</strong> and <strong>Nr</strong>, but mis-handled <code>Rcon</code> for <code>i/Nk ≥ 9</code> (missed <code>0x1B</code>→<code>0x36</code> step).</li>
+<li>Treated <code>module1</code>/<code>module2</code> as black-box instances correctly, but defaulted them to combinational timing.</li>
+</ul>
+<p><strong>Analysis.</strong> Functionally close but <strong>not spec-exact</strong> (Rcon corner), which is expected without domain context. After I fixed the Rcon table and aligned timing to my synchronous <code>SubWord</code>, it matched Prototype A. <strong>Takeaway:</strong> LLMs can mirror <strong>control/data recurrences</strong> from pseudocode well, but spec-driven constants (like Rcon sequences) still need expert review.</p>
 
 
-<div class="quarto-title-meta">
-
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Santiago Burgos-Fallon </p>
-          </div>
-  </div>
-    
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">October 9, 2025</p>
-    </div>
-  </div>
-  
-    
-  </div>
-  
-
-
-</header>
-
-
-
-
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

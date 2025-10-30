@@ -372,6 +372,17 @@ Figure&nbsp;2: Code Flow.
 <p>A polling-based system fails when the CPU cannot check the input pins fast enough to catch every state change. For our motor with <span class="math inline">\(CPR_{\times4} = 1632\)</span> spinning at <span class="math inline">\(\omega = 10\ \text{rev/s}\)</span>, the time between consecutive edges becomes extremely short:</p>
 <p><span class="math display">\[T_{\text{edge}} = \frac{1}{\text{edges/s}} = \frac{1}{\omega \cdot \text{CPR}_{\times4}} = \frac{1}{10 \cdot 1632} = \frac{1}{16320} \approx 61.3\ \mu\text{s}\]</span></p>
 <p>If the polling loop takes longer than <strong>61.3 microseconds</strong> to complete—a very likely scenario if the CPU is doing <em>anything</em> else—it will inevitably start missing encoder ticks. Our interrupt-based design, with a hardware-triggered, constant-time ISR, is far faster and therefore <strong>never missed pulses</strong> during testing at any speed.</p>
+<p>From an oscilloscope trace, I ran polling without any other tasks, to see how fast I could get it to poll. It showed a maximum speed of 88 us as seen in the trace below. This fails to meet the above outlined criteria.</p>
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="poll trace">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/C0D8377D-B8E3-44CF-B848-4D37A00EAA7B.png" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="poll trace">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Poll Trace
+</figcaption>
+</figure>
+</div>
 <hr>
 </section>
 </section>
