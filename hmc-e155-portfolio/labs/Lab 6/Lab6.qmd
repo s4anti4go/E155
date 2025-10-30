@@ -1,9 +1,104 @@
 ---
-title: "Lab 6: The Internet of Things and Serial Peripheral Interface"
-description: "An internet-accessible device to control an onboard LED and measure ambient temperature"
+title: "Lab 6: IoT Web Portal & SPI Temperature Sensor (DS1722)"
+description: "STM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)"
 author: "Santiago Burgos-Fallon"
-date: "10/02/25"
+date: "10/27/25"
 categories:
   - Labs
 draft: false
 ---
+
+## Introduction
+
+In this lab I built a small **IoT device**: an STM32L432KC microcontroller talks SPI to a **DS1722** digital thermometer and UART to an **ESP8266** that serves a minimal HTML page. The webpage lets a user **toggle an LED**, **view the temperature**, and **select the sensor resolution (8–12 bits)**. I wrote a CMSIS-only SPI driver, verified the serial links with a **logic analyzer**, and debugged the DS1722 configuration so higher-resolution modes update correctly.
+
+
+## System Overview
+
+**Data path.** DS1722 →(SPI)→ MCU →(UART)→ ESP8266 →(Wi-Fi AP)→ browser.
+**Control path.** Browser requests `/ledon`, `/ledoff`, or `/res{8..12}` → ESP forwards `/REQ:...` to MCU → MCU toggles LED and/or updates DS1722 configuration → MCU renders fresh HTML → ESP serves it.
+
+**General Schematic.**
+![General Schematic.](images/lab6.jpeg){#fig-block align="center" fig-alt="general schematic for design" width="90%"}
+
+### DS1722 Essentials (what finally made it work)
+
+* **Config register layout:**
+  I map **R2:R1:R0 to bits 3:2:1** and keep **SD=0** for continuous conversions.
+* **I/O addresses:** read `0x00`, write `0x80`.
+* **Data format:** left-justified 12-bit signed; **1 LSB = 1/256 °C**:
+* **Expected CONFIG hex (sanity checks):**
+  8-bit → `0xE0`, 9-bit → `0xE2`, 10-bit → `0xE4`, 11-bit → `0xE6`, 12-bit → `0xE8`.
+* **Conversion time increases with resolution** (≈75 ms @8-bit up to ≈1.2 s @12-bit). The registers hold the **last completed value** until the new conversion finishes; that’s why higher resolutions appear “slower.”
+
+### SPI Driver (CMSIS)
+
+* Initializes SPI1 with chosen prescaler, **CPHA=1**, software-managed NSS.
+* **Manual CE** is asserted **HIGH** before sending the address and stays high through the data byte(s).
+* Blocking 8-bit transfers via `DR` with `TXE/RXNE` polling.
+
+### ESP8266 Request Protocol
+
+* ESP sends a single line like:
+
+  ```
+  /REQ:ledon\n
+  /REQ:          (for root /)
+  /REQ:res12
+  ```
+* MCU parses the token, updates LED or DS1722 config, then returns a **complete HTML page**. The ESP forwards it to the browser once it sees `</html>` (or after a 200 ms idle gap).
+
+## Web Page / UI
+
+* **Controls:** LED **On/Off** buttons; **resolution** buttons (8/9/10/11/12-bit).
+* **Telemetry:** current temperature in °C and °F; current **CONFIG** byte (for debug).
+* Minimal CSS for legibility.
+
+### HTML Generation Notes
+
+* The MCU emits the HTTP header and then a single HTML document (no AJAX).
+* Each button click triggers a fresh page render (stateless).
+* On a **resolution change**, the page reads CONFIG back and displays it so I can confirm the write took effect.
+
+## Logic Analyzer Capture
+
+![Logic Trace.](images/ClartiagoFile.png){#fig-block align="center" fig-alt="logic trace" width="90%"}
+
+**What to see:**
+
+* **CONFIG write:** CE goes **HIGH**, MOSI sends `0x80` (write), then the data byte (e.g., `0xE8` for 12-bit). **SCK edges** align with CPHA=1.
+* **Temperature read:** CE HIGH, MOSI `0x01` (LSB addr) then one dummy byte; MISO shows LSB. Repeat for MSB (`0x02`).
+* Idles return **MISO high** 
+
+## Results
+
+* LED control from the webpage works reliably.
+* Temperature displays in **°C and °F**, updates on each refresh.
+* **Resolution switching 8→12 bits works**; CONFIG shows the expected hex.
+* At higher resolutions the value updates more slowly (by design); the last reading is held until the new conversion completes—consistent with the datasheet.
+
+## Time Spent
+
+**~14 hours** 
+
+## Known Limitations / Future Work
+
+* No auto-refresh; a timed meta-refresh or small JS would update values without clicks.
+* Could add an on-page indicator for “conversion in progress” at higher resolutions.
+* Burst read (MSB+LSB under one CE) would reduce overhead slightly.
+
+## AI Prototype
+
+**Prompt 1 (UI):**
+
+> *I’m making a web portal to interface with a temperature sensor. Create an HTML page that looks good and is intuitive to show the temperature, control an LED, and change the precision of the readout.*
+
+**What happened.** The LLM produced a clean, semantic HTML/CSS snippet with buttons for **LED on/off** and **resolution** (8–12). It assumed typical REST paths (`/ledon`, `/res12`) which matched the lab’s `/REQ:...` pass-through, so I only had to paste the `<body>` into my MCU string generation. Styling was lightweight and rendered fine on mobile. **Takeaway:** For **front-end scaffolding**, the LLM sped things up and required minimal edits.
+
+**Prompt 2 (SPI function):**
+
+> *Write me a C function to carry out a SPI transaction to retrieve a temperature reading from a DS1722 sensor. Make use of CMSIS libraries for the STM32L432KC.*
+
+**What happened.** The first draft mixed HAL calls and got **CPHA** wrong, and it didn’t keep **CE asserted** across address+data. It also read only one byte (dropping either MSB or LSB). After I corrected to **CMSIS-only**, enforced **CPHA=1**, kept **CE high**, and read **both bytes**, the code worked. The LLM was **useful as a skeleton**, but **device-specific details** (register map, timing, bit fields) needed careful verification against the datasheet and on the logic analyzer.
+
+**Overall:** LLMs handled **UI boilerplate** very well. For **low-level peripheral code**, they were helpful to outline **structure**, but **hardware-exact details** still required my domain knowledge and lab instrumentation to validate and fix.

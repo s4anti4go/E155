@@ -118,6 +118,10 @@ $$T_{\text{edge}} = \frac{1}{\text{edges/s}} = \frac{1}{\omega \cdot \text{CPR}_
 
 If the polling loop takes longer than **61.3 microseconds** to complete—a very likely scenario if the CPU is doing *anything* else—it will inevitably start missing encoder ticks. Our interrupt-based design, with a hardware-triggered, constant-time ISR, is far faster and therefore **never missed pulses** during testing at any speed. 
 
+From an oscilloscope trace, I ran polling without any other tasks, to see how fast I could get it to poll. It showed a maximum speed of 88 us as seen in the trace below. This fails to meet the above outlined criteria.
+
+![Poll Trace](images/C0D8377D-B8E3-44CF-B848-4D37A00EAA7B.png){#fig-block align="center" fig-alt="poll trace" width="90%"}
+
 ---
 
 ## Time Spent

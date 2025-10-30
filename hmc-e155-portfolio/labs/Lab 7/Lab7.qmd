@@ -1,9 +1,189 @@
 ---
-title: "Lab 7: The Advanced Encryption Standard"
-description: "A hardware accelerator to perform 128-bit AES encryption"
+
+title: "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link"
+description: "Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer"
 author: "Santiago Burgos-Fallon"
-date: "10/09/25"
+date: "10/30/25"
 categories:
-  - Labs
+  -Labs
 draft: false
+
 ---
+
+## Introduction
+
+In this lab I implemented a **128-bit AES encryption accelerator** in SystemVerilog and wrapped it with a simple **SPI shift interface** so an MCU can send a key and plaintext and read back the ciphertext. The AES core is an **iterative, multi-cycle** design (1 round per few cycles) sized to the FPGA’s resources. I verified function first in simulation (core TB, then SPI TB), then used a **logic analyzer** to confirm timing and bit ordering on the hardware link.
+
+**Learning outcomes:** specification-driven design, datapath + controller partitioning, MCU↔FPGA interface timing, structured debug with simulation + LA, and a taste of hardware acceleration.
+
+## System Overview
+
+**Top-level flow.** MCU →(SPI: 256 SCK in)→ FPGA (**aes_spi**) → **aes_core** → ciphertext latched →(SPI: 128 SCK out)→ MCU, which compares against a known test vector.
+
+**AES mode.** AES-128, **Nr = 10** rounds (Nk = 4, Nb = 4). The round sequence is:
+
+* Initial **AddRoundKey**
+* Rounds 1–9: **SubBytes → ShiftRows → MixColumns → AddRoundKey**
+* Round 10: **SubBytes → ShiftRows → AddRoundKey** (no MixColumns)
+
+![block diagram Schematic.](images/blk.jpeg){#fig-block align="center" fig-alt="block diagram schematic for design" width="90%"}
+
+### SPI Interface (FPGA side)
+
+* Mode **CPOL=0/CPHA=0**: sample `sdi` on **posedge SCK**; update `sdo` on **negedge SCK**.
+* **Shift-in phase (256 edges):** `{plaintext, key}` MSB-first.
+* **Compute phase:** `load` deasserted; core runs ~11 fabric clocks and raises `done`.
+* **Shift-out phase (128 edges):** cipher MSB-first; the **first MSB** is driven as soon as `done` rises (before next SCK edge), then `sdo` updates on negedges.
+
+**Insert logic-analyzer timing diagram here.**
+
+## Design Approach
+
+### Datapath
+
+* **State register (128b)** holds the current AES state.
+* **RoundKey register (128b)** holds the active round key.
+* **SubBytes**: 16× `sbox_sync` (1-cycle, uses BRAM; `sbox.txt` ROM init).
+* **ShiftRows**: hard-wired byte permutes.
+* **MixColumns**: 4× column units with GF(2^8) multiply-by-x helper (`galoismult` with poly `0x1B`).
+* **AddRoundKey**: 4× 32-bit XORs.
+
+### Controller (FSM)
+
+States (conceptually):
+
+1. **IDLE** — wait for `load`; stage plaintext/key for initial ARK.
+2. **INIT_ARK** — compute `state = plaintext ^ key`.
+3. **ROUND_PREP** — present `state` to SubBytes; keyexp sees `{round, rk}`.
+4. **SUB_ISSUE / SUB_CAPTURE** — burn 1 cycle for `sbox_sync`, latch `SubBytes`.
+5. **SR_STAGE** — apply ShiftRows.
+6. **MC_STAGE** — apply MixColumns (skip when `round==10`).
+7. **ARK_STAGE / ARK_FINAL** — XOR with next round key; increment round; on final, latch `cyphertext` and assert `done`.
+8. **FINISH** — hold `done` high until next `load`.
+
+**Insert FSM state diagram here.**
+
+### Key Expansion (AES-128)
+
+* Implements **RotWord → SubWord → XOR with Rcon** on the last word, then chained XORs to form the next 128-bit round key.
+* **Rcon** sequence uses `{0x01, 0x02, 0x04, …, 0x1B, 0x36}` for rounds 1..10.
+* SubWord uses the same **sbox_sync** (1-cycle).
+
+**Insert KeyExpansion schematic snippet here.**
+
+## Implementation Notes
+
+* The **iterative core** fits comfortably; the S-box is the dominant area (maps to BRAM/LUT RAM depending on tool inference).
+* Because **sbox_sync** is synchronous, I inserted an explicit **one-cycle gap** between presenting bytes and capturing the substituted result.
+* The **final round** bypasses MixColumns via a small mux on the ARK input.
+* The **SPI** module double-buffers the outbound ciphertext so `sdo` is valid **immediately** on `done` and then continues shifting on SCK negedges.
+
+## Test Plan
+
+### Functional Vectors (Core TB)
+
+* **NIST AES-128 example** (Appendix A/B):
+
+  * `key = 2b7e151628aed2a6abf7158809cf4f3c`
+  * `plaintext = 3243f6a8885a308d313198a2e0370734`
+  * **Expected** `ciphertext = 3925841d02dc09fbdc118597196a0b32`
+* The core TB drives `load`, clocks through 10 rounds, and checks `done` and the final value.
+
+![core wave forms.](images/core%20waves.png){#fig-block align="center" fig-alt="block diagram schematic for design" width="90%"}
+
+### End-to-End SPI (SPI TB)
+
+* Shifts `{plaintext, key}` MSB-first on `sdi` with **256 posedges**.
+* Deasserts `load` and waits for `done`.
+* Samples `sdo` on **posedge SCK** while I update it on **negedge** (128 cycles).
+* Compares the assembled 128-bit value with the golden.
+* On success, the TB prints “**Testbench ran successfully**” and calls `$stop` to allow wave inspection.
+
+:::: {.columns}
+::: {.column width="60%"}
+![Spi waves.](images/spi%20waves.png){#fig-7seg-waves fig-alt="spi waveform."}
+:::
+::: {.column width="40%"}
+![Spi transcript.](images/spi%20output.png){#fig-7seg-log fig-alt="all pass."}
+:::
+::::
+
+### Logic Analyzer (Hardware)
+
+* Probes: `SCK`, `SDI`, `SDO`, `CE/NSS`, optionally `done` on a GPIO, and a few FSM state bits via spare pins.
+* **What to verify:**
+
+  * 256 SCK edges during shift-in, 128 during shift-out.
+  * `SDO` **changes on negedge**, sampled on posedge.
+  * First MSB presented right when `done` rises.
+  * Bit order is **MSB-first** for both directions.
+
+**Insert on-board capture here.**
+
+## MCU ↔ FPGA Interface
+
+* The provided `lab7.c` drives the SPI transaction and compares the ciphertext locally. No changes needed as long as:
+
+  * CPOL/CPHA = **0/0** (match FPGA).
+  * **NSS/CE** held active during each continuous shift window.
+  * Bit order **MSB-first**.
+* On success, the MCU prints a pass banner and can toggle a status LED.
+
+**Insert MCU console screenshot here.**
+
+## Results
+
+* **Core TB:** passes the NIST vector.
+* **SPI TB:** passes end-to-end; ciphertext matches.
+* **Hardware LA:** edge phasing, counts, and MSB-first ordering match expectations.
+* The iterative design meets timing at the board’s default fabric clock (internal LF/HS oscillator or system clock; I used the on-board oscillator block).
+
+## Time Spent
+
+~**20 hours** .
+
+## Known Limitations / Future Work
+
+* Current core is **encrypt-only**; no decryption path.
+* One round per several cycles; could **pipeline** rounds for higher throughput (at area cost).
+* Add **AXI-lite** or memory-mapped interface for queued requests.
+* Parameterize for **AES-192/256** key sizes.
+
+**Schematic standards**: labeled pins/parts/values, junction dots, left-to-right flow, neat layout, title block.
+**HDL standards**: one module/file, descriptive names, comments, clear hierarchy, individual module TBs, include TB outputs in report.
+
+![general schematic](images/scm.jpeg){#fig-block align="center" fig-alt="general diagram schematic for design" width="90%"}
+
+
+## AI Prototype
+
+### Prototype A — With Spec (FIPS-197 available)
+
+**Prompt.**
+*“Write SystemVerilog HDL to implement the KeyExpansion logic described in the FIPS-197 uploaded document. The module should be purely combinational, using the previous key and current round number to calculate the next key. Assume other required modules (SubWord and RotWord) are already implemented.”*
+
+**Outcome (what happened).**
+The LLM produced a clean combinational `keyexpansion` with:
+
+* Correct **Rcon** mapping for rounds 1..10.
+* `RotWord` then `SubWord` on `w3`, XOR chain `w0'..w3'`.
+* Proper port widths and MSB-first word ordering.
+
+**Analysis.**
+It synthesized immediately. Because my in-lab design uses **synchronous** `SubWord` (via `sbox_sync`), I swapped the prototype’s pure-comb `SubWord` call for my existing registered version and inserted one holding cycle in the controller. The generated structure matched FIPS-197, so functional results were identical.
+
+
+### Prototype B — Without Spec (No “AES” Mention)
+
+**Prompt.**
+*(Rephrased, no “AES” terms; uses the provided abstract pseudocode with `module1`, `module2`, `Rcon` and loop unrolling instructions.)*
+
+**Outcome (what happened).**
+The LLM generated a module that:
+
+* Preserved the **word-wise recurrence** and XOR chain.
+* Exposed a param for **Nk** and **Nr**, but mis-handled `Rcon` for `i/Nk ≥ 9` (missed `0x1B`→`0x36` step).
+* Treated `module1`/`module2` as black-box instances correctly, but defaulted them to combinational timing.
+
+**Analysis.**
+Functionally close but **not spec-exact** (Rcon corner), which is expected without domain context. After I fixed the Rcon table and aligned timing to my synchronous `SubWord`, it matched Prototype A. **Takeaway:** LLMs can mirror **control/data recurrences** from pseudocode well, but spec-driven constants (like Rcon sequences) still need expert review.
