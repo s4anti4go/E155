@@ -18,7 +18,7 @@
     "href": "labs.html",
     "title": "Labs",
     "section": "",
-    "text": "Introduction\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: IoT Web Portal & SPI Temperature Sensor (DS1722)\n\n\nSTM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)\n\n\n\n\n\nOct 27, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts — Quadrature Encoder Velocity on STM32L432KC\n\n\nMeasure motor speed (rev/s) and direction using EXTI interrupts on a quadrature encoder. A=PA6, B=PB4. ITM/SWO printf at ≥1 Hz.\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio — Für Elise on STM32L432KC\n\n\nSquare-wave audio synthesis with timer-driven GPIO → LM386 → 8 Ω speaker. No CMSIS; bare-metal register macros.\n\n\n\n\n\nSep 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\n4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output\n\n\n\n\n\nSep 17, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+    "text": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link\n\n\nIterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer\n\n\n\n\n\nOct 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: IoT Web Portal & SPI Temperature Sensor (DS1722)\n\n\nSTM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)\n\n\n\n\n\nOct 27, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts — Quadrature Encoder Velocity on STM32L432KC\n\n\nMeasure motor speed (rev/s) and direction using EXTI interrupts on a quadrature encoder. A=PA6, B=PB4. ITM/SWO printf at ≥1 Hz.\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio — Für Elise on STM32L432KC\n\n\nSquare-wave audio synthesis with timer-driven GPIO → LM386 → 8 Ω speaker. No CMSIS; bare-metal register macros.\n\n\n\n\n\nSep 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\n4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output\n\n\n\n\n\nSep 17, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "labs/Lab 4/Lab4.html",
@@ -149,77 +149,77 @@
   {
     "objectID": "labs/Lab 7/Lab7.html",
     "href": "labs/Lab 7/Lab7.html",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "",
-    "text": "title: “Lab 7: AES-128 Hardware Accelerator & SPI MCU Link” description: “Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer” author: “Santiago Burgos-Fallon” date: “10/30/25” categories: -Labs draft: false"
+    "text": "In this lab I implemented a 128-bit AES encryption accelerator in SystemVerilog and wrapped it with a simple SPI shift interface so an MCU can send a key and plaintext and read back the ciphertext. The AES core is an iterative, multi-cycle design (1 round per few cycles) sized to the FPGA’s resources. I verified function first in simulation (core TB, then SPI TB), then used a logic analyzer to confirm timing and bit ordering on the hardware link.\nLearning outcomes: specification-driven design, datapath + controller partitioning, MCU↔︎FPGA interface timing, structured debug with simulation + LA, and a taste of hardware acceleration."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#introduction",
     "href": "labs/Lab 7/Lab7.html#introduction",
-    "title": "E155 Portfolio",
-    "section": "Introduction",
-    "text": "Introduction\nIn this lab I implemented a 128-bit AES encryption accelerator in SystemVerilog and wrapped it with a simple SPI shift interface so an MCU can send a key and plaintext and read back the ciphertext. The AES core is an iterative, multi-cycle design (1 round per few cycles) sized to the FPGA’s resources. I verified function first in simulation (core TB, then SPI TB), then used a logic analyzer to confirm timing and bit ordering on the hardware link.\nLearning outcomes: specification-driven design, datapath + controller partitioning, MCU↔︎FPGA interface timing, structured debug with simulation + LA, and a taste of hardware acceleration."
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
+    "section": "",
+    "text": "In this lab I implemented a 128-bit AES encryption accelerator in SystemVerilog and wrapped it with a simple SPI shift interface so an MCU can send a key and plaintext and read back the ciphertext. The AES core is an iterative, multi-cycle design (1 round per few cycles) sized to the FPGA’s resources. I verified function first in simulation (core TB, then SPI TB), then used a logic analyzer to confirm timing and bit ordering on the hardware link.\nLearning outcomes: specification-driven design, datapath + controller partitioning, MCU↔︎FPGA interface timing, structured debug with simulation + LA, and a taste of hardware acceleration."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#system-overview",
     "href": "labs/Lab 7/Lab7.html#system-overview",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "System Overview",
-    "text": "System Overview\nTop-level flow. MCU →(SPI: 256 SCK in)→ FPGA (aes_spi) → aes_core → ciphertext latched →(SPI: 128 SCK out)→ MCU, which compares against a known test vector.\nAES mode. AES-128, Nr = 10 rounds (Nk = 4, Nb = 4). The round sequence is:\n\nInitial AddRoundKey\nRounds 1–9: SubBytes → ShiftRows → MixColumns → AddRoundKey\nRound 10: SubBytes → ShiftRows → AddRoundKey (no MixColumns)\n\n\n\n\n\n\n\nFigure 1: block diagram Schematic.\n\n\n\n\nSPI Interface (FPGA side)\n\nMode CPOL=0/CPHA=0: sample sdi on posedge SCK; update sdo on negedge SCK.\nShift-in phase (256 edges): {plaintext, key} MSB-first.\nCompute phase: load deasserted; core runs ~11 fabric clocks and raises done.\nShift-out phase (128 edges): cipher MSB-first; the first MSB is driven as soon as done rises (before next SCK edge), then sdo updates on negedges.\n\nInsert logic-analyzer timing diagram here."
+    "text": "System Overview\nTop-level flow. MCU →(SPI: 256 SCK in)→ FPGA (aes_spi) → aes_core → ciphertext latched →(SPI: 128 SCK out)→ MCU, which compares against a known test vector.\nAES mode. AES-128, Nr = 10 rounds (Nk = 4, Nb = 4). The round sequence is:\n\nInitial AddRoundKey\nRounds 1–9: SubBytes → ShiftRows → MixColumns → AddRoundKey\nRound 10: SubBytes → ShiftRows → AddRoundKey (no MixColumns)\n\n\n\n\n\n\n\nFigure 1: block diagram Schematic.\n\n\n\n\nSPI Interface (FPGA side)\n\nMode CPOL=0/CPHA=0: sample sdi on posedge SCK; update sdo on negedge SCK.\nShift-in phase (256 edges): {plaintext, key} MSB-first.\nCompute phase: load deasserted; core runs ~11 fabric clocks and raises done.\nShift-out phase (128 edges): cipher MSB-first; the first MSB is driven as soon as done rises (before next SCK edge), then sdo updates on negedges."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#design-approach",
     "href": "labs/Lab 7/Lab7.html#design-approach",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Design Approach",
-    "text": "Design Approach\n\nDatapath\n\nState register (128b) holds the current AES state.\nRoundKey register (128b) holds the active round key.\nSubBytes: 16× sbox_sync (1-cycle, uses BRAM; sbox.txt ROM init).\nShiftRows: hard-wired byte permutes.\nMixColumns: 4× column units with GF(2^8) multiply-by-x helper (galoismult with poly 0x1B).\nAddRoundKey: 4× 32-bit XORs.\n\n\n\nController (FSM)\nStates (conceptually):\n\nIDLE — wait for load; stage plaintext/key for initial ARK.\nINIT_ARK — compute state = plaintext ^ key.\nROUND_PREP — present state to SubBytes; keyexp sees {round, rk}.\nSUB_ISSUE / SUB_CAPTURE — burn 1 cycle for sbox_sync, latch SubBytes.\nSR_STAGE — apply ShiftRows.\nMC_STAGE — apply MixColumns (skip when round==10).\nARK_STAGE / ARK_FINAL — XOR with next round key; increment round; on final, latch cyphertext and assert done.\nFINISH — hold done high until next load.\n\nInsert FSM state diagram here.\n\n\nKey Expansion (AES-128)\n\nImplements RotWord → SubWord → XOR with Rcon on the last word, then chained XORs to form the next 128-bit round key.\nRcon sequence uses {0x01, 0x02, 0x04, …, 0x1B, 0x36} for rounds 1..10.\nSubWord uses the same sbox_sync (1-cycle).\n\nInsert KeyExpansion schematic snippet here."
+    "text": "Design Approach\n\nDatapath\n\nState register (128b) holds the current AES state.\nRoundKey register (128b) holds the active round key.\nSubBytes: 16× sbox_sync (1-cycle, uses BRAM; sbox.txt ROM init).\nShiftRows: hard-wired byte permutes.\nMixColumns: 4× column units with GF(2^8) multiply-by-x helper (galoismult with poly 0x1B).\nAddRoundKey: 4× 32-bit XORs.\n\n\n\nController (FSM)\nStates (conceptually):\n\nIDLE — wait for load; stage plaintext/key for initial ARK.\nINIT_ARK — compute state = plaintext ^ key.\nROUND_PREP — present state to SubBytes; keyexp sees {round, rk}.\nSUB_ISSUE / SUB_CAPTURE — burn 1 cycle for sbox_sync, latch SubBytes.\nSR_STAGE — apply ShiftRows.\nMC_STAGE — apply MixColumns (skip when round==10).\nARK_STAGE / ARK_FINAL — XOR with next round key; increment round; on final, latch cyphertext and assert done.\nFINISH — hold done high until next load.\n\n\n\nKey Expansion (AES-128)\n\nImplements RotWord → SubWord → XOR with Rcon on the last word, then chained XORs to form the next 128-bit round key.\nRcon sequence uses {0x01, 0x02, 0x04, …, 0x1B, 0x36} for rounds 1..10.\nSubWord uses the same sbox_sync (1-cycle)."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#implementation-notes",
     "href": "labs/Lab 7/Lab7.html#implementation-notes",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Implementation Notes",
     "text": "Implementation Notes\n\nThe iterative core fits comfortably; the S-box is the dominant area (maps to BRAM/LUT RAM depending on tool inference).\nBecause sbox_sync is synchronous, I inserted an explicit one-cycle gap between presenting bytes and capturing the substituted result.\nThe final round bypasses MixColumns via a small mux on the ARK input.\nThe SPI module double-buffers the outbound ciphertext so sdo is valid immediately on done and then continues shifting on SCK negedges."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#test-plan",
     "href": "labs/Lab 7/Lab7.html#test-plan",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Test Plan",
     "text": "Test Plan\n\nFunctional Vectors (Core TB)\n\nNIST AES-128 example (Appendix A/B):\n\nkey = 2b7e151628aed2a6abf7158809cf4f3c\nplaintext = 3243f6a8885a308d313198a2e0370734\nExpected ciphertext = 3925841d02dc09fbdc118597196a0b32\n\nThe core TB drives load, clocks through 10 rounds, and checks done and the final value.\n\n\n\n\n\n\n\nFigure 2: core wave forms.\n\n\n\n\n\nEnd-to-End SPI (SPI TB)\n\nShifts {plaintext, key} MSB-first on sdi with 256 posedges.\nDeasserts load and waits for done.\nSamples sdo on posedge SCK while I update it on negedge (128 cycles).\nCompares the assembled 128-bit value with the golden.\nOn success, the TB prints “Testbench ran successfully” and calls $stop to allow wave inspection.\n\n\n\n\n\n\n\n\n\nFigure 3: Spi waves.\n\n\n\n\n\n\n\n\n\n\nFigure 4: Spi transcript.\n\n\n\n\n\n\n\nLogic Analyzer (Hardware)\n\nProbes: SCK, SDI, SDO, CE/NSS, optionally done on a GPIO, and a few FSM state bits via spare pins.\nWhat to verify:\n\n256 SCK edges during shift-in, 128 during shift-out.\nSDO changes on negedge, sampled on posedge.\nFirst MSB presented right when done rises.\nBit order is MSB-first for both directions.\n\n\nInsert on-board capture here."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#mcu-fpga-interface",
     "href": "labs/Lab 7/Lab7.html#mcu-fpga-interface",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "MCU ↔︎ FPGA Interface",
     "text": "MCU ↔︎ FPGA Interface\n\nThe provided lab7.c drives the SPI transaction and compares the ciphertext locally. No changes needed as long as:\n\nCPOL/CPHA = 0/0 (match FPGA).\nNSS/CE held active during each continuous shift window.\nBit order MSB-first.\n\nOn success, the MCU prints a pass banner and can toggle a status LED.\n\nInsert MCU console screenshot here."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#results",
     "href": "labs/Lab 7/Lab7.html#results",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Results",
     "text": "Results\n\nCore TB: passes the NIST vector.\nSPI TB: passes end-to-end; ciphertext matches.\nHardware LA: edge phasing, counts, and MSB-first ordering match expectations.\nThe iterative design meets timing at the board’s default fabric clock (internal LF/HS oscillator or system clock; I used the on-board oscillator block)."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#time-spent",
     "href": "labs/Lab 7/Lab7.html#time-spent",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Time Spent",
     "text": "Time Spent\n~20 hours ."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#known-limitations-future-work",
     "href": "labs/Lab 7/Lab7.html#known-limitations-future-work",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Known Limitations / Future Work",
     "text": "Known Limitations / Future Work\n\nCurrent core is encrypt-only; no decryption path.\nOne round per several cycles; could pipeline rounds for higher throughput (at area cost).\nAdd AXI-lite or memory-mapped interface for queued requests.\nParameterize for AES-192/256 key sizes.\n\nSchematic standards: labeled pins/parts/values, junction dots, left-to-right flow, neat layout, title block. HDL standards: one module/file, descriptive names, comments, clear hierarchy, individual module TBs, include TB outputs in report.\n\n\n\n\n\n\nFigure 5: general schematic"
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#ai-prototype",
     "href": "labs/Lab 7/Lab7.html#ai-prototype",
-    "title": "E155 Portfolio",
+    "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "AI Prototype",
     "text": "AI Prototype\n\nPrototype A — With Spec (FIPS-197 available)\nPrompt. “Write SystemVerilog HDL to implement the KeyExpansion logic described in the FIPS-197 uploaded document. The module should be purely combinational, using the previous key and current round number to calculate the next key. Assume other required modules (SubWord and RotWord) are already implemented.”\nOutcome (what happened). The LLM produced a clean combinational keyexpansion with:\n\nCorrect Rcon mapping for rounds 1..10.\nRotWord then SubWord on w3, XOR chain w0'..w3'.\nProper port widths and MSB-first word ordering.\n\nAnalysis. It synthesized immediately. Because my in-lab design uses synchronous SubWord (via sbox_sync), I swapped the prototype’s pure-comb SubWord call for my existing registered version and inserted one holding cycle in the controller. The generated structure matched FIPS-197, so functional results were identical.\n\n\nPrototype B — Without Spec (No “AES” Mention)\nPrompt. (Rephrased, no “AES” terms; uses the provided abstract pseudocode with module1, module2, Rcon and loop unrolling instructions.)\nOutcome (what happened). The LLM generated a module that:\n\nPreserved the word-wise recurrence and XOR chain.\nExposed a param for Nk and Nr, but mis-handled Rcon for i/Nk ≥ 9 (missed 0x1B→0x36 step).\nTreated module1/module2 as black-box instances correctly, but defaulted them to combinational timing.\n\nAnalysis. Functionally close but not spec-exact (Rcon corner), which is expected without domain context. After I fixed the Rcon table and aligned timing to my synchronous SubWord, it matched Prototype A. Takeaway: LLMs can mirror control/data recurrences from pseudocode well, but spec-driven constants (like Rcon sequences) still need expert review."
   },

@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Santiago Burgos-Fallon">
+<meta name="dcterms.date" content="2025-10-30">
+<meta name="description" content="Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer">
 
-<title>lab7 – E155 Portfolio</title>
+<title>Lab 7: AES-128 Hardware Accelerator &amp; SPI MCU Link – E155 Portfolio</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -155,14 +158,47 @@ ul.task-list li input[type="checkbox"] {
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lab 7: AES-128 Hardware Accelerator &amp; SPI MCU Link</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">-Labs</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer
+  </div>
+</div>
 
 
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Santiago Burgos-Fallon </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 30, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
 
 
-<hr>
-<p>title: “Lab 7: AES-128 Hardware Accelerator &amp; SPI MCU Link” description: “Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer” author: “Santiago Burgos-Fallon” date: “10/30/25” categories: -Labs draft: false</p>
-<hr>
+</header>
+
+
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p>In this lab I implemented a <strong>128-bit AES encryption accelerator</strong> in SystemVerilog and wrapped it with a simple <strong>SPI shift interface</strong> so an MCU can send a key and plaintext and read back the ciphertext. The AES core is an <strong>iterative, multi-cycle</strong> design (1 round per few cycles) sized to the FPGA’s resources. I verified function first in simulation (core TB, then SPI TB), then used a <strong>logic analyzer</strong> to confirm timing and bit ordering on the hardware link.</p>
@@ -195,7 +231,6 @@ Figure&nbsp;1: block diagram Schematic.
 <li><strong>Compute phase:</strong> <code>load</code> deasserted; core runs ~11 fabric clocks and raises <code>done</code>.</li>
 <li><strong>Shift-out phase (128 edges):</strong> cipher MSB-first; the <strong>first MSB</strong> is driven as soon as <code>done</code> rises (before next SCK edge), then <code>sdo</code> updates on negedges.</li>
 </ul>
-<p><strong>Insert logic-analyzer timing diagram here.</strong></p>
 </section>
 </section>
 <section id="design-approach" class="level2">
@@ -224,7 +259,6 @@ Figure&nbsp;1: block diagram Schematic.
 <li><strong>ARK_STAGE / ARK_FINAL</strong> — XOR with next round key; increment round; on final, latch <code>cyphertext</code> and assert <code>done</code>.</li>
 <li><strong>FINISH</strong> — hold <code>done</code> high until next <code>load</code>.</li>
 </ol>
-<p><strong>Insert FSM state diagram here.</strong></p>
 </section>
 <section id="key-expansion-aes-128" class="level3">
 <h3 class="anchored" data-anchor-id="key-expansion-aes-128">Key Expansion (AES-128)</h3>
@@ -233,7 +267,6 @@ Figure&nbsp;1: block diagram Schematic.
 <li><strong>Rcon</strong> sequence uses <code>{0x01, 0x02, 0x04, …, 0x1B, 0x36}</code> for rounds 1..10.</li>
 <li>SubWord uses the same <strong>sbox_sync</strong> (1-cycle).</li>
 </ul>
-<p><strong>Insert KeyExpansion schematic snippet here.</strong></p>
 </section>
 </section>
 <section id="implementation-notes" class="level2">
