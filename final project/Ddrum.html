@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.21">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Santiago Burgos-Fallon &amp; Abraham Rock">
+<meta name="dcterms.date" content="2025-12-06">
+<meta name="description" content="integrates real-time audio processing, custom hardware inputs, and high-speed visual feedback.">
+
+<title>Final Project: DDRUM – E155 Portfolio</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ea1d7ac60288e0f1efdbc993fd8432ae.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5b4ad623e5705c0698d39aec6f10cf02.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">E155 Portfolio</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../blog.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../labs.html"> 
+<span class="menu-text">Labs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../FinalProject.html"> 
+<span class="menu-text">Final Project</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../Resources.html"> 
+<span class="menu-text">Resources</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#abstract-team" id="toc-abstract-team" class="nav-link active" data-scroll-target="#abstract-team">1. Abstract &amp; Team</a></li>
+  <li><a href="#system-overview" id="toc-system-overview" class="nav-link" data-scroll-target="#system-overview">2. System Overview</a>
+  <ul class="collapse">
+  <li><a href="#high-level-block-diagram" id="toc-high-level-block-diagram" class="nav-link" data-scroll-target="#high-level-block-diagram">High Level Block Diagram</a></li>
+  </ul></li>
+  <li><a href="#hardware-design-schematics" id="toc-hardware-design-schematics" class="nav-link" data-scroll-target="#hardware-design-schematics">3. Hardware Design &amp; Schematics</a>
+  <ul class="collapse">
+  <li><a href="#bill-of-materials" id="toc-bill-of-materials" class="nav-link" data-scroll-target="#bill-of-materials">Bill of Materials</a></li>
+  <li><a href="#new-hardware-description" id="toc-new-hardware-description" class="nav-link" data-scroll-target="#new-hardware-description">New Hardware Description</a></li>
+  <li><a href="#schematic" id="toc-schematic" class="nav-link" data-scroll-target="#schematic">Schematic</a></li>
+  </ul></li>
+  <li><a href="#microcontroller-design" id="toc-microcontroller-design" class="nav-link" data-scroll-target="#microcontroller-design">4. Microcontroller Design</a></li>
+  <li><a href="#fpga-design" id="toc-fpga-design" class="nav-link" data-scroll-target="#fpga-design">5. FPGA Design</a>
+  <ul class="collapse">
+  <li><a href="#rtl-hierarchy" id="toc-rtl-hierarchy" class="nav-link" data-scroll-target="#rtl-hierarchy">RTL Hierarchy</a></li>
+  <li><a href="#verification" id="toc-verification" class="nav-link" data-scroll-target="#verification">Verification</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">6. Results</a></li>
+  <li><a href="#references-acknowledgements" id="toc-references-acknowledgements" class="nav-link" data-scroll-target="#references-acknowledgements">7. References &amp; Acknowledgements</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Final Project: DDRUM</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Final Project</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    integrates real-time audio processing, custom hardware inputs, and high-speed visual feedback.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Santiago Burgos-Fallon &amp; Abraham Rock </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 6, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="abstract-team" class="level2">
+<h2 class="anchored" data-anchor-id="abstract-team">1. Abstract &amp; Team</h2>
+<p>Team Members:</p>
+<p>Santiago Burgos-Fallon: A senior Engineering student at Harvey Mudd College. Passionate about everything computers, from digital design and embedded systems to data analysis. This summer he worked at TSMC in Lithography Process Engineering, where he analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Additionally he has built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. - <a href="https://s4anti4go.github.io/E155/">Portfolio</a></p>
+<p>Abraham Rock: An Engineering student at Harvey Mudd College in the Class of 2027. His interests lie in digital electronics, embedded systems, and systems engineering. He is in the ASHMC Executive Board where he acts as this year’s Muddlife Director. - <a href="https://abe-3.github.io/E155-Microprocessors/">Portfolio</a></p>
+<p>Abstract: DDRUM is an embedded rhythm game system that integrates real-time audio processing, custom hardware inputs, and high-speed visual feedback. The system utilizes an STM32L432KC microcontroller for audio streaming, beat detection, and synchronization, reading uncompressed WAV files from an SD card and buffering them to create a precise “lookahead” mechanic. An iCE40UP5K FPGA acts as a parallel graphics accelerator, driving a 64x64 HUB75 LED matrix with 24-bit color via Binary Code Modulation (BCM) while simultaneously handling input from four custom piezoelectric drum pads with zero-latency debounce logic. By decoupling audio analysis from visual rendering across two distinct processors communicating via SPI, DDRUM achieves fluid, high-refresh rate visuals and accurate rhythm scoring without the overhead of an operating system.</p>
+<p>Project Demonstration: <iframe width="560" height="315" src="https://www.youtube.com/embed/gT5HPUfdJN4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen=""></iframe></p>
+</section>
+<section id="system-overview" class="level2">
+<h2 class="anchored" data-anchor-id="system-overview">2. System Overview</h2>
+<p>DDRUM is a four-pad rhythm game in the spirit of DDR and Guitar Hero. Notes descend in four lanes on a display while a song plays. The player strikes one of four drum pads on the beat, and the system scores accuracy as Perfect, Okay, or Miss with real-time visual feedback and a running score/combo.</p>
+<section id="high-level-block-diagram" class="level3">
+<h3 class="anchored" data-anchor-id="high-level-block-diagram">High Level Block Diagram</h3>
+<p><img src="images/bd.png" class="img-fluid"></p>
+<p>Block Diagram</p>
+</section>
+</section>
+<section id="hardware-design-schematics" class="level2">
+<h2 class="anchored" data-anchor-id="hardware-design-schematics">3. Hardware Design &amp; Schematics</h2>
+<section id="bill-of-materials" class="level3">
+<h3 class="anchored" data-anchor-id="bill-of-materials">Bill of Materials</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Item</th>
+<th style="text-align: right;">Qty</th>
+<th style="text-align: right;">Price</th>
+<th>Source</th>
+<th>Part Number / Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64×64 RGB LED Matrix (HUB75)</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">$36.59</td>
+<td><a href="https://www.amazon.com/64x64-RGB-Matrix-Panel-P3-0/dp/B0F31TZY6Q">Amazon</a></td>
+<td>P3.0 Panel</td>
+</tr>
+<tr class="even">
+<td>Piezo Disc Transducers</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">$6.49</td>
+<td><a href="https://www.amazon.com/Cheerock-Transducer-3-94inch-Acoustic-Microphone/dp/B0BY6P9TP2">Amazon</a></td>
+<td>27 mm Piezo Discs</td>
+</tr>
+<tr class="odd">
+<td>Micro SD Card Reader</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">$0.00</td>
+<td>Engineering Stockroom</td>
+<td>Teensy Brand (Unknown P/N)</td>
+</tr>
+<tr class="even">
+<td>ICE40UP5K-SG48I FPGA</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">Included</td>
+<td>Included with Ps kit</td>
+<td>ICE40UP5K-SG48I</td>
+</tr>
+<tr class="odd">
+<td>STM32L432KCU MCU</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">Included</td>
+<td>Included with Ps kit</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="new-hardware-description" class="level3">
+<h3 class="anchored" data-anchor-id="new-hardware-description">New Hardware Description</h3>
+<p>Piezoelectric Transducers &amp; Analog Front End: The Piezo discs are small sensors that generate electrical charge from mechanical stress. Looking at the raw oscilloscope traces of the sensors, these are very sensitive sensors that can vary heavily in output, capable of producing a signal over 15 V in amplitude. To protect our FPGA IOs and to ensure loading doesn’t ruin the signal, we ran it through a unity gain buffer Op-Amp to potentially rail out and get the output signal to a safe voltage (3.3 V).</p>
+<div class="columns">
+<div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/PD1.png" class="img-fluid figure-img"></p>
+<figcaption>Piezo Trace 1</figcaption>
+</figure>
+</div>
+<p>Raw Signal 1</p>
+</div><div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/PD2.png" class="img-fluid figure-img"></p>
+<figcaption>Piezo Trace 2</figcaption>
+</figure>
+</div>
+<p>Raw Signal 2</p>
+</div><div class="column" style="width:33%;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/PD3.png" class="img-fluid figure-img"></p>
+<figcaption>Piezo Setup</figcaption>
+</figure>
+</div>
+<p>Raw Signal 3</p>
+</div>
+</div>
+<p>Figure 1: Oscilloscope analysis of the Piezoelectric transducers showing the voltage spikes and the buffering circuit.</p>
+<p>HUB75 LED Matrix: The 64x64 RGB LED Matrix is a high-density display that utilizes the HUB75 interface. Unlike the SPI-based LCDs used in previous course labs which possess internal RAM and controllers, this panel is a “dumb” display that requires continuous, high-speed driving of its shift registers and row select lines to maintain an image. Since the LEDs are purely digital (on/off), we utilized the FPGA to implement Binary Code Modulation (BCM)—rapidly modulating the specific on-times of the LEDs—to achieve full 24-bit color depth without utilizing a specialized driver chip.</p>
+<p>Micro SD Card Reader: To store the high-fidelity audio tracks for the game, we utilized a Micro SD Card breakout board. This module interfaces with the STM32 via the SPI protocol (Mode 0) running at 2.5 MHz. Unlike the internal flash memory on the MCU, which is limited in size, the SD card allows us to store large, uncompressed .wav files. We implemented a read-only FAT32 file system driver to locate the target song files and stream data in 512-byte sectors into the MCU’s circular buffer for processing.</p>
+</section>
+<section id="schematic" class="level3">
+<h3 class="anchored" data-anchor-id="schematic">Schematic</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/schematic.png" class="img-fluid figure-img"></p>
+<figcaption>Main Schematic</figcaption>
+</figure>
+</div>
+<p>Figure 2: Main System Schematic.</p>
+</section>
+</section>
+<section id="microcontroller-design" class="level2">
+<h2 class="anchored" data-anchor-id="microcontroller-design">4. Microcontroller Design</h2>
+<p>Our Microcontroller is functioning as the central controller. It is responsible for playing audio, analyzing the music data to generate beats, and synchronizing audio playback with the FPGA’s visual elements.</p>
+<p>To read in the music data, we use a Micro SD Card Reader acting as a peripheral where we read a .wav file from the SD card 512 bytes at a time.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/SD_LA.png" class="img-fluid figure-img"></p>
+<figcaption>SPI SD Card Trace</figcaption>
+</figure>
+</div>
+<p>Figure 3: Logic analyzer trace of SPI communication between MCU and SD Card.</p>
+<p>For most rhythm games — including our own, a major part is displaying the beats from the song before they are played. Since we chose a fall time of 2 seconds for the visual logic on our FPGA, we needed to buffer the output by exactly 2 seconds to make the beat info sent to the FPGA match up. To do this, after reading in a sector, we analyze it immediately, save it into a circular RAM buffer, and then later use the DAC peripheral to play that audio cleanly.</p>
+<p>To determine what is a valid beat in the song, we considered analyzing the frequency of a chunk of the song via an FFT and considering low enough frequencies as bass/drum beats. However, we realized frequency analysis alone would not function well as real beats are a complex combination of frequency, volume, and transient attack, making it a challenge for even sophisticated neural networks.</p>
+<p>So we decided that to be more efficient and save us the time of implementing an FFT accelerator, we solely consider volume dynamics. We calculated the average volume of the song as we read it in via a simple integrator to track the running average of the song’s energy; if a sample’s amplitude spikes 20% higher than this average, we register it as a beat.</p>
+<p>Once a beat is identified, we communicate with the FPGA using the SPI peripheral. The FPGA shares the same SPI bus as the SD card but is addressed via a separate Chip Select pin. We simply assert the line, transmit a single-byte bitmask indicating the active lane, and de-assert the line.</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/LA_FPGA2.png" class="img-fluid figure-img"></p>
+<figcaption>2nd Lane Active</figcaption>
+</figure>
+</div>
+<p>2nd Lane Active</p>
+</div><div class="column" style="width:50%;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/LA_FPGA1.png" class="img-fluid figure-img"></p>
+<figcaption>4th Lane Active</figcaption>
+</figure>
+</div>
+<p>4th Lane Active</p>
+</div>
+</div>
+<p>Figure 4: Logic analyzer trace of SPI transaction sending beat mask from MCU to FPGA.</p>
+<p>Finally, for the audio output, we use the DAC driven by a hardware timer (TIM6). We configure the timer to trigger an interrupt at the exact sample rate of the file. On every tick, the handler pulls the “oldest” byte from the tail of our circular buffer and writes it to the DAC output register, ensuring the audio plays smoothly and in perfect sync with the visuals we triggered 2 seconds prior.</p>
+</section>
+<section id="fpga-design" class="level2">
+<h2 class="anchored" data-anchor-id="fpga-design">5. FPGA Design</h2>
+<p>Our FPGA functions as a graphics processor and keeps track of the game logic. While the MCU handled high-level audio processing, we used our FPGA to drive the LED Matrix quickly, track falling notes, and handle drum beat inputs all in parallel.</p>
+<section id="rtl-hierarchy" class="level3">
+<h3 class="anchored" data-anchor-id="rtl-hierarchy">RTL Hierarchy</h3>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/hierarchy.png" class="img-fluid figure-img"></p>
+<figcaption>Generated Hierarchy</figcaption>
+</figure>
+</div>
+<p>Figure 5: Generated Hierarchy Diagram with TerosHDL</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/bbd.png" class="img-fluid figure-img"></p>
+<figcaption>Block Diagram</figcaption>
+</figure>
+</div>
+<p>Figure 6: Block Diagram of RTL Structure.</p>
+<p>The FPGA is an SPI peripheral for the MCU, waiting for chip select to drop so it can shift in a beat byte to iwnterpret which lane it should display on the LED Matrix. To prevent metastability between the crossing clock domains of the SPI Clock and its primitive HFOSC, we have the inputs go through a two-layer shift register to synchronize new beats safely.</p>
+<p>The core gameplay is all contained within the visual driving logic in the pattern_gen module. Each of the 4 lanes is a 64-bit shift register. When a beat arrives from the SPI interface, it simply travels through the shift register at a divided clock’s pace. For controlling all visual things including the “Hit Line,” we can simply check when and where a bit is in the shift register to tell if the hits we detect are “on time”.</p>
+<p>We use our Piezoelectric Disc Transducers as buttons to detect impact from the user. While they inherently aren’t very bouncy like mechanical buttons, putting them in a 3D-Printed Drum Casing added some bounce during testing, so we used a debouncer module to mediate this with a 100ms lockout.</p>
+<p>The most computationally expensive part of this design is driving the HUB75 and using Binary Coded Modulation (BCM). To prevent screen tearing (visual bleeding), we write the game data to a “back buffer” while the hub75_framebuffer module grabs data from the “front buffer” for display. Since the LED panels are purely digital (on/off), the BCM logic rapidly modulates the LEDs—turning them on for short intervals for LSBs and longer intervals for MSBs—to trick the eye into seeing full 24-bit color.</p>
+<p>Finally, to display the player’s progress, we implemented a font_rom that maps the current score to 5x3 pixel bitmaps, rendering them directly onto the matrix in real-time alongside the falling notes.</p>
+</section>
+<section id="verification" class="level3">
+<h3 class="anchored" data-anchor-id="verification">Verification</h3>
+<p>The modules that we wrote were: top, pattern_gen, font_rom, debouncer, beat_reciever, hit_detector. Testbenches were written to test them individually.</p>
+<section id="debouncer" class="level4">
+<h4 class="anchored" data-anchor-id="debouncer">Debouncer:</h4>
+<p><img src="images/debouncer_waves.png" class="img-fluid"></p>
+<p>Debouncing Module</p>
+</section>
+<section id="pattern-generator" class="level4">
+<h4 class="anchored" data-anchor-id="pattern-generator">Pattern Generator:</h4>
+<p><img src="images/pattern_gen_waves.png" class="img-fluid"></p>
+<p>Pattern Generator Module</p>
+</section>
+<section id="spi-reciever-inst.-as-beat_detector" class="level4">
+<h4 class="anchored" data-anchor-id="spi-reciever-inst.-as-beat_detector">SPI Reciever (inst. as beat_detector):</h4>
+<p><img src="images/spi_receiver_waves.png" class="img-fluid"></p>
+<p>SPI Module</p>
+</section>
+<section id="display-driver" class="level4">
+<h4 class="anchored" data-anchor-id="display-driver">Display Driver:</h4>
+<p><img src="images/dd_waves.png" class="img-fluid"></p>
+<p>Driver Module</p>
+</section>
+<section id="display-memory" class="level4">
+<h4 class="anchored" data-anchor-id="display-memory">Display Memory:</h4>
+<p><img src="images/dm_waves.png" class="img-fluid"></p>
+<p>Memory Module</p>
+</section>
+</section>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">6. Results</h2>
+<p>The final DDRUM system met all design specifications, achieving fluid integration between the audio subsystem and the custom FPGA graphics accelerator. Audio Synchronization &amp; Memory Management The system successfully implemented a 2.00-second lookahead buffer to facilitate beat detection. Given the STM32L432KC’s constraint of 64KB SRAM, we utilized 16 kHz, 8-bit mono audio. This configuration required approximately 44.1 KB of RAM for the 2-second window, leaving adequate headroom for the stack, heap, and file system drivers. The SD card throughput was measured at approximately 200 KB/s, easily sustaining the playback consumption rate of ~16 KB/s and preventing buffer underruns. Visual Refresh Rates The iCE40 FPGA successfully drove the HUB75 matrix using Binary Code Modulation (BCM) logic. We achieved a visual refresh rate of &gt;60 Hz with full 24-bit color depth (8 bits per channel). The dedicated hardware SPI interface handled the beat mask transfer with negligible latency (&lt; 1 <span class="math inline">\(\mu\)</span>s), ensuring the visual “hit line” remained perfectly aligned with the audible beat. Input Latency &amp; Signal Integrity The piezoelectric analog front-end, combined with the Unity Gain Buffer, successfully clamped input voltages to the safe 0V–3.3V logic range. The hardware-based debouncer, tuned to a 10 ms lockout window, eliminated mechanical “ringing” from the sensor pads. This resulted in a clean, single trigger event per drum strike, removing false positives while maintaining a responsive feel for the player.</p>
+<p><img src="images/final-pic-open.png" class="img-fluid" alt="Final Build Photo:open"> <img src="images/final-pic-closed.png" class="img-fluid" alt="Final Build Photo:closed"></p>
+<p>Figure 7: The completed DDRUM system.</p>
+</section>
+<section id="references-acknowledgements" class="level2">
+<h2 class="anchored" data-anchor-id="references-acknowledgements">7. References &amp; Acknowledgements</h2>
+<p>References: <a href="https://github.com/no2fpga/no2hub75">no2fpga’s no2hub75 hardware implementation</a></p>
+<p>Acknowledgements: Thank you to Prof.&nbsp;Spencer for reigning in the expectations of this project and making it all possible. Thank you to the T.A.’s Neil and Troy for being a pillar of support for us and the whole class.</p>
+<p>AI Feedback and Usage: We used AI for help getting the DAC peripheral to work, and bug fixing and clarification for driving the HUB75 interface with our pattern_gen module. In our liminal testing we found ChatGPT to be more proficient with HDL and Gemini to be better at C.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/s4anti4go\.github\.io\/E155\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

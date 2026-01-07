@@ -108,6 +108,10 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Labs</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../../FinalProject.html"> 
+<span class="menu-text">Final Project</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../../Resources.html"> 
 <span class="menu-text">Resources</span></a>
   </li>  
@@ -143,7 +147,6 @@ ul.task-list li input[type="checkbox"] {
   <ul class="collapse">
   <li><a href="#functional-vectors-core-tb" id="toc-functional-vectors-core-tb" class="nav-link" data-scroll-target="#functional-vectors-core-tb">Functional Vectors (Core TB)</a></li>
   <li><a href="#end-to-end-spi-spi-tb" id="toc-end-to-end-spi-spi-tb" class="nav-link" data-scroll-target="#end-to-end-spi-spi-tb">End-to-End SPI (SPI TB)</a></li>
-  <li><a href="#logic-analyzer-hardware" id="toc-logic-analyzer-hardware" class="nav-link" data-scroll-target="#logic-analyzer-hardware">Logic Analyzer (Hardware)</a></li>
   </ul></li>
   <li><a href="#mcu-fpga-interface" id="toc-mcu-fpga-interface" class="nav-link" data-scroll-target="#mcu-fpga-interface">MCU ↔︎ FPGA Interface</a></li>
   <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
@@ -213,7 +216,7 @@ ul.task-list li input[type="checkbox"] {
 <li>Rounds 1–9: <strong>SubBytes → ShiftRows → MixColumns → AddRoundKey</strong></li>
 <li>Round 10: <strong>SubBytes → ShiftRows → AddRoundKey</strong> (no MixColumns)</li>
 </ul>
-<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="block diagram schematic for design" data-align="center">
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="block diagram schematic for design">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/blk.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="block diagram schematic for design">
@@ -291,7 +294,7 @@ Figure&nbsp;1: block diagram Schematic.
 </ul></li>
 <li><p>The core TB drives <code>load</code>, clocks through 10 rounds, and checks <code>done</code> and the final value.</p></li>
 </ul>
-<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="block diagram schematic for design" data-align="center">
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="block diagram schematic for design">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/core waves.png" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="block diagram schematic for design">
@@ -337,20 +340,6 @@ Figure&nbsp;4: Spi transcript.
 </div>
 </div>
 </section>
-<section id="logic-analyzer-hardware" class="level3">
-<h3 class="anchored" data-anchor-id="logic-analyzer-hardware">Logic Analyzer (Hardware)</h3>
-<ul>
-<li><p>Probes: <code>SCK</code>, <code>SDI</code>, <code>SDO</code>, <code>CE/NSS</code>, optionally <code>done</code> on a GPIO, and a few FSM state bits via spare pins.</p></li>
-<li><p><strong>What to verify:</strong></p>
-<ul>
-<li>256 SCK edges during shift-in, 128 during shift-out.</li>
-<li><code>SDO</code> <strong>changes on negedge</strong>, sampled on posedge.</li>
-<li>First MSB presented right when <code>done</code> rises.</li>
-<li>Bit order is <strong>MSB-first</strong> for both directions.</li>
-</ul></li>
-</ul>
-<p><strong>Insert on-board capture here.</strong></p>
-</section>
 </section>
 <section id="mcu-fpga-interface" class="level2">
 <h2 class="anchored" data-anchor-id="mcu-fpga-interface">MCU ↔︎ FPGA Interface</h2>
@@ -363,15 +352,12 @@ Figure&nbsp;4: Spi transcript.
 </ul></li>
 <li><p>On success, the MCU prints a pass banner and can toggle a status LED.</p></li>
 </ul>
-<p><strong>Insert MCU console screenshot here.</strong></p>
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
 <ul>
 <li><strong>Core TB:</strong> passes the NIST vector.</li>
 <li><strong>SPI TB:</strong> passes end-to-end; ciphertext matches.</li>
-<li><strong>Hardware LA:</strong> edge phasing, counts, and MSB-first ordering match expectations.</li>
-<li>The iterative design meets timing at the board’s default fabric clock (internal LF/HS oscillator or system clock; I used the on-board oscillator block).</li>
 </ul>
 </section>
 <section id="time-spent" class="level2">
@@ -387,7 +373,7 @@ Figure&nbsp;4: Spi transcript.
 <li>Parameterize for <strong>AES-192/256</strong> key sizes.</li>
 </ul>
 <p><strong>Schematic standards</strong>: labeled pins/parts/values, junction dots, left-to-right flow, neat layout, title block. <strong>HDL standards</strong>: one module/file, descriptive names, comments, clear hierarchy, individual module TBs, include TB outputs in report.</p>
-<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" alt="general diagram schematic for design" data-align="center">
+<div id="fig-block" class="quarto-float quarto-figure quarto-figure-center anchored" data-align="center" alt="general diagram schematic for design">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/scm.jpeg" class="img-fluid figure-img" style="width:90.0%" data-align="center" alt="general diagram schematic for design">

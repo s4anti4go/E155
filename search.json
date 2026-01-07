@@ -7,18 +7,81 @@
     "text": "First Post!\n\n\nWhat Im looking forward to in Micro P’s\n\n\n\n\n\nAug 29, 2024\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
+    "objectID": "final project/Ddrum.html",
+    "href": "final project/Ddrum.html",
+    "title": "Final Project: DDRUM",
     "section": "",
-    "text": "About this site"
+    "text": "Team Members:\nSantiago Burgos-Fallon: A senior Engineering student at Harvey Mudd College. Passionate about everything computers, from digital design and embedded systems to data analysis. This summer he worked at TSMC in Lithography Process Engineering, where he analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Additionally he has built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. - Portfolio\nAbraham Rock: An Engineering student at Harvey Mudd College in the Class of 2027. His interests lie in digital electronics, embedded systems, and systems engineering. He is in the ASHMC Executive Board where he acts as this year’s Muddlife Director. - Portfolio\nAbstract: DDRUM is an embedded rhythm game system that integrates real-time audio processing, custom hardware inputs, and high-speed visual feedback. The system utilizes an STM32L432KC microcontroller for audio streaming, beat detection, and synchronization, reading uncompressed WAV files from an SD card and buffering them to create a precise “lookahead” mechanic. An iCE40UP5K FPGA acts as a parallel graphics accelerator, driving a 64x64 HUB75 LED matrix with 24-bit color via Binary Code Modulation (BCM) while simultaneously handling input from four custom piezoelectric drum pads with zero-latency debounce logic. By decoupling audio analysis from visual rendering across two distinct processors communicating via SPI, DDRUM achieves fluid, high-refresh rate visuals and accurate rhythm scoring without the overhead of an operating system.\nProject Demonstration:"
   },
   {
-    "objectID": "labs.html",
-    "href": "labs.html",
-    "title": "Labs",
+    "objectID": "final project/Ddrum.html#abstract-team",
+    "href": "final project/Ddrum.html#abstract-team",
+    "title": "Final Project: DDRUM",
     "section": "",
-    "text": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link\n\n\nIterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer\n\n\n\n\n\nOct 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: IoT Web Portal & SPI Temperature Sensor (DS1722)\n\n\nSTM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)\n\n\n\n\n\nOct 27, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts — Quadrature Encoder Velocity on STM32L432KC\n\n\nMeasure motor speed (rev/s) and direction using EXTI interrupts on a quadrature encoder. A=PA6, B=PB4. ITM/SWO printf at ≥1 Hz.\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio — Für Elise on STM32L432KC\n\n\nSquare-wave audio synthesis with timer-driven GPIO → LM386 → 8 Ω speaker. No CMSIS; bare-metal register macros.\n\n\n\n\n\nSep 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\n4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output\n\n\n\n\n\nSep 17, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
+    "text": "Team Members:\nSantiago Burgos-Fallon: A senior Engineering student at Harvey Mudd College. Passionate about everything computers, from digital design and embedded systems to data analysis. This summer he worked at TSMC in Lithography Process Engineering, where he analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Additionally he has built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. - Portfolio\nAbraham Rock: An Engineering student at Harvey Mudd College in the Class of 2027. His interests lie in digital electronics, embedded systems, and systems engineering. He is in the ASHMC Executive Board where he acts as this year’s Muddlife Director. - Portfolio\nAbstract: DDRUM is an embedded rhythm game system that integrates real-time audio processing, custom hardware inputs, and high-speed visual feedback. The system utilizes an STM32L432KC microcontroller for audio streaming, beat detection, and synchronization, reading uncompressed WAV files from an SD card and buffering them to create a precise “lookahead” mechanic. An iCE40UP5K FPGA acts as a parallel graphics accelerator, driving a 64x64 HUB75 LED matrix with 24-bit color via Binary Code Modulation (BCM) while simultaneously handling input from four custom piezoelectric drum pads with zero-latency debounce logic. By decoupling audio analysis from visual rendering across two distinct processors communicating via SPI, DDRUM achieves fluid, high-refresh rate visuals and accurate rhythm scoring without the overhead of an operating system.\nProject Demonstration:"
+  },
+  {
+    "objectID": "final project/Ddrum.html#system-overview",
+    "href": "final project/Ddrum.html#system-overview",
+    "title": "Final Project: DDRUM",
+    "section": "2. System Overview",
+    "text": "2. System Overview\nDDRUM is a four-pad rhythm game in the spirit of DDR and Guitar Hero. Notes descend in four lanes on a display while a song plays. The player strikes one of four drum pads on the beat, and the system scores accuracy as Perfect, Okay, or Miss with real-time visual feedback and a running score/combo.\n\nHigh Level Block Diagram\n\nBlock Diagram"
+  },
+  {
+    "objectID": "final project/Ddrum.html#hardware-design-schematics",
+    "href": "final project/Ddrum.html#hardware-design-schematics",
+    "title": "Final Project: DDRUM",
+    "section": "3. Hardware Design & Schematics",
+    "text": "3. Hardware Design & Schematics\n\nBill of Materials\n\n\n\nItem\nQty\nPrice\nSource\nPart Number / Notes\n\n\n\n\n64×64 RGB LED Matrix (HUB75)\n1\n$36.59\nAmazon\nP3.0 Panel\n\n\nPiezo Disc Transducers\n15\n$6.49\nAmazon\n27 mm Piezo Discs\n\n\nMicro SD Card Reader\n1\n$0.00\nEngineering Stockroom\nTeensy Brand (Unknown P/N)\n\n\nICE40UP5K-SG48I FPGA\n1\nIncluded\nIncluded with Ps kit\nICE40UP5K-SG48I\n\n\nSTM32L432KCU MCU\n1\nIncluded\nIncluded with Ps kit\n\n\n\n\n\n\nNew Hardware Description\nPiezoelectric Transducers & Analog Front End: The Piezo discs are small sensors that generate electrical charge from mechanical stress. Looking at the raw oscilloscope traces of the sensors, these are very sensitive sensors that can vary heavily in output, capable of producing a signal over 15 V in amplitude. To protect our FPGA IOs and to ensure loading doesn’t ruin the signal, we ran it through a unity gain buffer Op-Amp to potentially rail out and get the output signal to a safe voltage (3.3 V).\n\n\n\n\n\nPiezo Trace 1\n\n\nRaw Signal 1\n\n\n\n\nPiezo Trace 2\n\n\nRaw Signal 2\n\n\n\n\nPiezo Setup\n\n\nRaw Signal 3\n\n\nFigure 1: Oscilloscope analysis of the Piezoelectric transducers showing the voltage spikes and the buffering circuit.\nHUB75 LED Matrix: The 64x64 RGB LED Matrix is a high-density display that utilizes the HUB75 interface. Unlike the SPI-based LCDs used in previous course labs which possess internal RAM and controllers, this panel is a “dumb” display that requires continuous, high-speed driving of its shift registers and row select lines to maintain an image. Since the LEDs are purely digital (on/off), we utilized the FPGA to implement Binary Code Modulation (BCM)—rapidly modulating the specific on-times of the LEDs—to achieve full 24-bit color depth without utilizing a specialized driver chip.\nMicro SD Card Reader: To store the high-fidelity audio tracks for the game, we utilized a Micro SD Card breakout board. This module interfaces with the STM32 via the SPI protocol (Mode 0) running at 2.5 MHz. Unlike the internal flash memory on the MCU, which is limited in size, the SD card allows us to store large, uncompressed .wav files. We implemented a read-only FAT32 file system driver to locate the target song files and stream data in 512-byte sectors into the MCU’s circular buffer for processing.\n\n\nSchematic\n\n\n\nMain Schematic\n\n\nFigure 2: Main System Schematic."
+  },
+  {
+    "objectID": "final project/Ddrum.html#microcontroller-design",
+    "href": "final project/Ddrum.html#microcontroller-design",
+    "title": "Final Project: DDRUM",
+    "section": "4. Microcontroller Design",
+    "text": "4. Microcontroller Design\nOur Microcontroller is functioning as the central controller. It is responsible for playing audio, analyzing the music data to generate beats, and synchronizing audio playback with the FPGA’s visual elements.\nTo read in the music data, we use a Micro SD Card Reader acting as a peripheral where we read a .wav file from the SD card 512 bytes at a time.\n\n\n\nSPI SD Card Trace\n\n\nFigure 3: Logic analyzer trace of SPI communication between MCU and SD Card.\nFor most rhythm games — including our own, a major part is displaying the beats from the song before they are played. Since we chose a fall time of 2 seconds for the visual logic on our FPGA, we needed to buffer the output by exactly 2 seconds to make the beat info sent to the FPGA match up. To do this, after reading in a sector, we analyze it immediately, save it into a circular RAM buffer, and then later use the DAC peripheral to play that audio cleanly.\nTo determine what is a valid beat in the song, we considered analyzing the frequency of a chunk of the song via an FFT and considering low enough frequencies as bass/drum beats. However, we realized frequency analysis alone would not function well as real beats are a complex combination of frequency, volume, and transient attack, making it a challenge for even sophisticated neural networks.\nSo we decided that to be more efficient and save us the time of implementing an FFT accelerator, we solely consider volume dynamics. We calculated the average volume of the song as we read it in via a simple integrator to track the running average of the song’s energy; if a sample’s amplitude spikes 20% higher than this average, we register it as a beat.\nOnce a beat is identified, we communicate with the FPGA using the SPI peripheral. The FPGA shares the same SPI bus as the SD card but is addressed via a separate Chip Select pin. We simply assert the line, transmit a single-byte bitmask indicating the active lane, and de-assert the line.\n\n\n\n\n\n2nd Lane Active\n\n\n2nd Lane Active\n\n\n\n\n4th Lane Active\n\n\n4th Lane Active\n\n\nFigure 4: Logic analyzer trace of SPI transaction sending beat mask from MCU to FPGA.\nFinally, for the audio output, we use the DAC driven by a hardware timer (TIM6). We configure the timer to trigger an interrupt at the exact sample rate of the file. On every tick, the handler pulls the “oldest” byte from the tail of our circular buffer and writes it to the DAC output register, ensuring the audio plays smoothly and in perfect sync with the visuals we triggered 2 seconds prior."
+  },
+  {
+    "objectID": "final project/Ddrum.html#fpga-design",
+    "href": "final project/Ddrum.html#fpga-design",
+    "title": "Final Project: DDRUM",
+    "section": "5. FPGA Design",
+    "text": "5. FPGA Design\nOur FPGA functions as a graphics processor and keeps track of the game logic. While the MCU handled high-level audio processing, we used our FPGA to drive the LED Matrix quickly, track falling notes, and handle drum beat inputs all in parallel.\n\nRTL Hierarchy\n\n\n\nGenerated Hierarchy\n\n\nFigure 5: Generated Hierarchy Diagram with TerosHDL\n\n\n\nBlock Diagram\n\n\nFigure 6: Block Diagram of RTL Structure.\nThe FPGA is an SPI peripheral for the MCU, waiting for chip select to drop so it can shift in a beat byte to iwnterpret which lane it should display on the LED Matrix. To prevent metastability between the crossing clock domains of the SPI Clock and its primitive HFOSC, we have the inputs go through a two-layer shift register to synchronize new beats safely.\nThe core gameplay is all contained within the visual driving logic in the pattern_gen module. Each of the 4 lanes is a 64-bit shift register. When a beat arrives from the SPI interface, it simply travels through the shift register at a divided clock’s pace. For controlling all visual things including the “Hit Line,” we can simply check when and where a bit is in the shift register to tell if the hits we detect are “on time”.\nWe use our Piezoelectric Disc Transducers as buttons to detect impact from the user. While they inherently aren’t very bouncy like mechanical buttons, putting them in a 3D-Printed Drum Casing added some bounce during testing, so we used a debouncer module to mediate this with a 100ms lockout.\nThe most computationally expensive part of this design is driving the HUB75 and using Binary Coded Modulation (BCM). To prevent screen tearing (visual bleeding), we write the game data to a “back buffer” while the hub75_framebuffer module grabs data from the “front buffer” for display. Since the LED panels are purely digital (on/off), the BCM logic rapidly modulates the LEDs—turning them on for short intervals for LSBs and longer intervals for MSBs—to trick the eye into seeing full 24-bit color.\nFinally, to display the player’s progress, we implemented a font_rom that maps the current score to 5x3 pixel bitmaps, rendering them directly onto the matrix in real-time alongside the falling notes.\n\n\nVerification\nThe modules that we wrote were: top, pattern_gen, font_rom, debouncer, beat_reciever, hit_detector. Testbenches were written to test them individually.\n\nDebouncer:\n\nDebouncing Module\n\n\nPattern Generator:\n\nPattern Generator Module\n\n\nSPI Reciever (inst. as beat_detector):\n\nSPI Module\n\n\nDisplay Driver:\n\nDriver Module\n\n\nDisplay Memory:\n\nMemory Module"
+  },
+  {
+    "objectID": "final project/Ddrum.html#results",
+    "href": "final project/Ddrum.html#results",
+    "title": "Final Project: DDRUM",
+    "section": "6. Results",
+    "text": "6. Results\nThe final DDRUM system met all design specifications, achieving fluid integration between the audio subsystem and the custom FPGA graphics accelerator. Audio Synchronization & Memory Management The system successfully implemented a 2.00-second lookahead buffer to facilitate beat detection. Given the STM32L432KC’s constraint of 64KB SRAM, we utilized 16 kHz, 8-bit mono audio. This configuration required approximately 44.1 KB of RAM for the 2-second window, leaving adequate headroom for the stack, heap, and file system drivers. The SD card throughput was measured at approximately 200 KB/s, easily sustaining the playback consumption rate of ~16 KB/s and preventing buffer underruns. Visual Refresh Rates The iCE40 FPGA successfully drove the HUB75 matrix using Binary Code Modulation (BCM) logic. We achieved a visual refresh rate of &gt;60 Hz with full 24-bit color depth (8 bits per channel). The dedicated hardware SPI interface handled the beat mask transfer with negligible latency (&lt; 1 \\(\\mu\\)s), ensuring the visual “hit line” remained perfectly aligned with the audible beat. Input Latency & Signal Integrity The piezoelectric analog front-end, combined with the Unity Gain Buffer, successfully clamped input voltages to the safe 0V–3.3V logic range. The hardware-based debouncer, tuned to a 10 ms lockout window, eliminated mechanical “ringing” from the sensor pads. This resulted in a clean, single trigger event per drum strike, removing false positives while maintaining a responsive feel for the player.\n \nFigure 7: The completed DDRUM system."
+  },
+  {
+    "objectID": "final project/Ddrum.html#references-acknowledgements",
+    "href": "final project/Ddrum.html#references-acknowledgements",
+    "title": "Final Project: DDRUM",
+    "section": "7. References & Acknowledgements",
+    "text": "7. References & Acknowledgements\nReferences: no2fpga’s no2hub75 hardware implementation\nAcknowledgements: Thank you to Prof. Spencer for reigning in the expectations of this project and making it all possible. Thank you to the T.A.’s Neil and Troy for being a pillar of support for us and the whole class.\nAI Feedback and Usage: We used AI for help getting the DAC peripheral to work, and bug fixing and clarification for driving the HUB75 interface with our pattern_gen module. In our liminal testing we found ChatGPT to be more proficient with HDL and Gemini to be better at C."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "E155 Portfolio",
+    "section": "",
+    "text": "Hi! I’m Santiago Burgos-Fallon, a senior Engineering student at Harvey Mudd College. I love everything computers, from digital design and embedded systems to data analysis. This summer I worked at TSMC in Lithography Process Engineering, where I analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Ive built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. Ive also done work relating healthcare tooling and AI for making healthcare more accesible. Currently, I am co-authoring a paper using Python-heavy data processing and visualization techniques to correlate air quality and Segregation in West Oakland. I like projects where I can go end-to-end: define the problem, model the data, write the code, and deliver something impactful."
+  },
+  {
+    "objectID": "resources/resource1.html",
+    "href": "resources/resource1.html",
+    "title": "E155 Course Page",
+    "section": "",
+    "text": "https://hmc-e155.github.io"
+  },
+  {
+    "objectID": "FinalProject.html",
+    "href": "FinalProject.html",
+    "title": "Final Project",
+    "section": "",
+    "text": "Final Project: DDRUM\n\n\nintegrates real-time audio processing, custom hardware inputs, and high-speed visual feedback.\n\n\n\n\n\nDec 6, 2025\n\n\nSantiago Burgos-Fallon & Abraham Rock\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "labs/Lab 4/Lab4.html",
@@ -186,21 +249,21 @@
     "href": "labs/Lab 7/Lab7.html#test-plan",
     "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Test Plan",
-    "text": "Test Plan\n\nFunctional Vectors (Core TB)\n\nNIST AES-128 example (Appendix A/B):\n\nkey = 2b7e151628aed2a6abf7158809cf4f3c\nplaintext = 3243f6a8885a308d313198a2e0370734\nExpected ciphertext = 3925841d02dc09fbdc118597196a0b32\n\nThe core TB drives load, clocks through 10 rounds, and checks done and the final value.\n\n\n\n\n\n\n\nFigure 2: core wave forms.\n\n\n\n\n\nEnd-to-End SPI (SPI TB)\n\nShifts {plaintext, key} MSB-first on sdi with 256 posedges.\nDeasserts load and waits for done.\nSamples sdo on posedge SCK while I update it on negedge (128 cycles).\nCompares the assembled 128-bit value with the golden.\nOn success, the TB prints “Testbench ran successfully” and calls $stop to allow wave inspection.\n\n\n\n\n\n\n\n\n\nFigure 3: Spi waves.\n\n\n\n\n\n\n\n\n\n\nFigure 4: Spi transcript.\n\n\n\n\n\n\n\nLogic Analyzer (Hardware)\n\nProbes: SCK, SDI, SDO, CE/NSS, optionally done on a GPIO, and a few FSM state bits via spare pins.\nWhat to verify:\n\n256 SCK edges during shift-in, 128 during shift-out.\nSDO changes on negedge, sampled on posedge.\nFirst MSB presented right when done rises.\nBit order is MSB-first for both directions.\n\n\nInsert on-board capture here."
+    "text": "Test Plan\n\nFunctional Vectors (Core TB)\n\nNIST AES-128 example (Appendix A/B):\n\nkey = 2b7e151628aed2a6abf7158809cf4f3c\nplaintext = 3243f6a8885a308d313198a2e0370734\nExpected ciphertext = 3925841d02dc09fbdc118597196a0b32\n\nThe core TB drives load, clocks through 10 rounds, and checks done and the final value.\n\n\n\n\n\n\n\nFigure 2: core wave forms.\n\n\n\n\n\nEnd-to-End SPI (SPI TB)\n\nShifts {plaintext, key} MSB-first on sdi with 256 posedges.\nDeasserts load and waits for done.\nSamples sdo on posedge SCK while I update it on negedge (128 cycles).\nCompares the assembled 128-bit value with the golden.\nOn success, the TB prints “Testbench ran successfully” and calls $stop to allow wave inspection.\n\n\n\n\n\n\n\n\n\nFigure 3: Spi waves.\n\n\n\n\n\n\n\n\n\n\nFigure 4: Spi transcript."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#mcu-fpga-interface",
     "href": "labs/Lab 7/Lab7.html#mcu-fpga-interface",
     "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "MCU ↔︎ FPGA Interface",
-    "text": "MCU ↔︎ FPGA Interface\n\nThe provided lab7.c drives the SPI transaction and compares the ciphertext locally. No changes needed as long as:\n\nCPOL/CPHA = 0/0 (match FPGA).\nNSS/CE held active during each continuous shift window.\nBit order MSB-first.\n\nOn success, the MCU prints a pass banner and can toggle a status LED.\n\nInsert MCU console screenshot here."
+    "text": "MCU ↔︎ FPGA Interface\n\nThe provided lab7.c drives the SPI transaction and compares the ciphertext locally. No changes needed as long as:\n\nCPOL/CPHA = 0/0 (match FPGA).\nNSS/CE held active during each continuous shift window.\nBit order MSB-first.\n\nOn success, the MCU prints a pass banner and can toggle a status LED."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#results",
     "href": "labs/Lab 7/Lab7.html#results",
     "title": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link",
     "section": "Results",
-    "text": "Results\n\nCore TB: passes the NIST vector.\nSPI TB: passes end-to-end; ciphertext matches.\nHardware LA: edge phasing, counts, and MSB-first ordering match expectations.\nThe iterative design meets timing at the board’s default fabric clock (internal LF/HS oscillator or system clock; I used the on-board oscillator block)."
+    "text": "Results\n\nCore TB: passes the NIST vector.\nSPI TB: passes end-to-end; ciphertext matches."
   },
   {
     "objectID": "labs/Lab 7/Lab7.html#time-spent",
@@ -525,18 +588,18 @@
     "text": "I’m excited for MicroPs because I get to see my code affect hardware in the real world. Writing something, probing a pin, and watching the scope confirm it did what I intended is the kind of feedback loop that makes the work satisfying and helps me absorb information.\nThis semester I want to build fluency in the basics that make systems reliable: read reference manuals without getting stuck, set up clocks cleanly, bring up GPIO/timers/serial, and write small drivers with clear init and ISR paths. I want to use interrupts and DMA with intent, understand when HAL or an RTOS helps (and when it doesn’t), and get better at debugging with a logic analyzer and scope instead of guessing.\nBy the end, I’m excited to be able to partake in a focused project I care about that uses the information I learned from the class. Looking forward to it :D"
   },
   {
-    "objectID": "resources/resource1.html",
-    "href": "resources/resource1.html",
-    "title": "E155 Course Page",
+    "objectID": "labs.html",
+    "href": "labs.html",
+    "title": "Labs",
     "section": "",
-    "text": "https://hmc-e155.github.io"
+    "text": "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link\n\n\nIterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer\n\n\n\n\n\nOct 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 6: IoT Web Portal & SPI Temperature Sensor (DS1722)\n\n\nSTM32L432KC CMSIS SPI driver + ESP8266 web portal to read temperature and control an LED at user-selectable resolutions (8–12 bits)\n\n\n\n\n\nOct 27, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 5: Interrupts — Quadrature Encoder Velocity on STM32L432KC\n\n\nMeasure motor speed (rev/s) and direction using EXTI interrupts on a quadrature encoder. A=PA6, B=PB4. ITM/SWO printf at ≥1 Hz.\n\n\n\n\n\nOct 9, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 4: Digital Audio — Für Elise on STM32L432KC\n\n\nSquare-wave audio synthesis with timer-driven GPIO → LM386 → 8 Ω speaker. No CMSIS; bare-metal register macros.\n\n\n\n\n\nSep 30, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 3: Keypad Scanner\n\n\n4×4 matrix keypad scanner with debouncing, single-event registration, and dual 7-segment output\n\n\n\n\n\nSep 17, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 2: Multiplexed 7-Segment Display\n\n\nA time-multiplexing scheme to drive two seven-segment displays with a single set of FPGA I/O pins\n\n\n\n\n\nSep 11, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\n\n\n\n\n\n\n\nLab 1: FPGA and MCU Setup and Testing\n\n\nExplore the microcontroller unit (MCU) and field-programmable gate array (FPGA) development boards used in this course.\n\n\n\n\n\nAug 29, 2025\n\n\nSantiago Burgos-Fallon\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "E155 Portfolio",
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
     "section": "",
-    "text": "Hi! I’m Santiago Burgos-Fallon, a senior Engineering student at Harvey Mudd College. I love everything computers, from digital design and embedded systems to data analysis. This summer I worked at TSMC in Lithography Process Engineering, where I analyzed overlay relationships, tuned control systems, and pushed on design-for-manufacturability to improve chip yield and performance. Ive built practical digital systems including a 16 bit IEEE-754 FMA and a drone navigation project that fuses computer vision with ultra-wideband (UWB) positioning. Ive also done work relating healthcare tooling and AI for making healthcare more accesible. Currently, I am co-authoring a paper using Python-heavy data processing and visualization techniques to correlate air quality and Segregation in West Oakland. I like projects where I can go end-to-end: define the problem, model the data, write the code, and deliver something impactful."
+    "text": "About this site"
   },
   {
     "objectID": "Resources.html",
