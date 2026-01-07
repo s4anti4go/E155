@@ -1,5 +1,4 @@
 ---
-
 title: "Lab 7: AES-128 Hardware Accelerator & SPI MCU Link"
 description: "Iterative AES core on FPGA with SPI front-end; MCU sends key/plaintext and verifies ciphertext; debug with a logic analyzer"
 author: "Santiago Burgos-Fallon"
@@ -7,7 +6,6 @@ date: "10/30/25"
 categories:
   -Labs
 draft: false
-
 ---
 
 ## Introduction
@@ -35,8 +33,6 @@ In this lab I implemented a **128-bit AES encryption accelerator** in SystemVeri
 * **Compute phase:** `load` deasserted; core runs ~11 fabric clocks and raises `done`.
 * **Shift-out phase (128 edges):** cipher MSB-first; the **first MSB** is driven as soon as `done` rises (before next SCK edge), then `sdo` updates on negedges.
 
-**Insert logic-analyzer timing diagram here.**
-
 ## Design Approach
 
 ### Datapath
@@ -61,15 +57,11 @@ States (conceptually):
 7. **ARK_STAGE / ARK_FINAL** — XOR with next round key; increment round; on final, latch `cyphertext` and assert `done`.
 8. **FINISH** — hold `done` high until next `load`.
 
-**Insert FSM state diagram here.**
-
 ### Key Expansion (AES-128)
 
 * Implements **RotWord → SubWord → XOR with Rcon** on the last word, then chained XORs to form the next 128-bit round key.
 * **Rcon** sequence uses `{0x01, 0x02, 0x04, …, 0x1B, 0x36}` for rounds 1..10.
 * SubWord uses the same **sbox_sync** (1-cycle).
-
-**Insert KeyExpansion schematic snippet here.**
 
 ## Implementation Notes
 
@@ -108,17 +100,6 @@ States (conceptually):
 :::
 ::::
 
-### Logic Analyzer (Hardware)
-
-* Probes: `SCK`, `SDI`, `SDO`, `CE/NSS`, optionally `done` on a GPIO, and a few FSM state bits via spare pins.
-* **What to verify:**
-
-  * 256 SCK edges during shift-in, 128 during shift-out.
-  * `SDO` **changes on negedge**, sampled on posedge.
-  * First MSB presented right when `done` rises.
-  * Bit order is **MSB-first** for both directions.
-
-**Insert on-board capture here.**
 
 ## MCU ↔ FPGA Interface
 
@@ -129,14 +110,11 @@ States (conceptually):
   * Bit order **MSB-first**.
 * On success, the MCU prints a pass banner and can toggle a status LED.
 
-**Insert MCU console screenshot here.**
 
 ## Results
 
 * **Core TB:** passes the NIST vector.
 * **SPI TB:** passes end-to-end; ciphertext matches.
-* **Hardware LA:** edge phasing, counts, and MSB-first ordering match expectations.
-* The iterative design meets timing at the board’s default fabric clock (internal LF/HS oscillator or system clock; I used the on-board oscillator block).
 
 ## Time Spent
 
